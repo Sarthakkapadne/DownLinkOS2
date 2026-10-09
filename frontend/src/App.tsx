@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Header } from './components/Header';
 import { Navigation, ActiveTab } from './components/Navigation';
+import { TabFleetManifest } from './components/tabs/TabFleetManifest';
 import { TabOverviewGantt } from './components/tabs/TabOverviewGantt';
+import { TabLiveDownlinkSim } from './components/tabs/TabLiveDownlinkSim';
 import { TabDisruptionRecovery } from './components/tabs/TabDisruptionRecovery';
 import { TabGlobeConstellation } from './components/tabs/TabGlobeConstellation';
 import { TabDecisionExplainer } from './components/tabs/TabDecisionExplainer';
@@ -9,11 +11,11 @@ import { TabBenchmarksValidator } from './components/tabs/TabBenchmarksValidator
 import { PassDetailModal } from './components/PassDetailModal';
 import { PRIMARY_SCENARIO } from './data/mockScenarios';
 import { SimulationEngine } from './engine/simulationEngine';
-import { GroundStation, ScheduledContact, DisruptionState } from './types';
+import { GroundStation, ScheduledContact, DisruptionState, PassOpportunity } from './types';
 
 export const App: React.FC = () => {
-  // Navigation & View Mode
-  const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
+  // Navigation & View Mode: Default to Tab 1 (Manifest) or Tab 2 (Overview)
+  const [activeTab, setActiveTab] = useState<ActiveTab>('manifest');
   const [isPlainEnglishMode, setIsPlainEnglishMode] = useState<boolean>(true);
 
   // Simulation Clock
@@ -105,6 +107,29 @@ export const App: React.FC = () => {
     });
   };
 
+  // Convert PassOpportunity to modal contact inspector
+  const handleSelectPass = (pass: PassOpportunity) => {
+    const matchingContact = orbitopsResult.contacts.find(c => c.passId === pass.id) || {
+      id: pass.id,
+      passId: pass.id,
+      satelliteId: pass.satelliteId,
+      satelliteName: pass.satelliteName,
+      stationId: pass.stationId,
+      stationName: pass.stationName,
+      startMinutes: pass.aosMinutes,
+      endMinutes: pass.losMinutes,
+      durationMinutes: pass.durationMinutes,
+      deliveredVolumeGb: pass.dataVolumeGb,
+      priority: pass.priority,
+      isFrozen: false,
+      status: 'SCHEDULED' as const,
+      selectionRationale: `Candidate line-of-sight pass window with peak elevation ${pass.maxElevationDeg}° and buffer urgency score ${pass.bufferFillPct}%.`,
+      cableAngleStart: pass.cableAngleAos,
+      cableAngleEnd: pass.cableAngleLos
+    };
+    setSelectedContact(matchingContact);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900 selection:bg-sky-200 selection:text-sky-900">
       {/* Global Mission Control Header */}
@@ -132,6 +157,18 @@ export const App: React.FC = () => {
 
       {/* Main Workspace Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {activeTab === 'manifest' && (
+          <TabFleetManifest
+            satellites={PRIMARY_SCENARIO.satellites}
+            stations={stations}
+            passes={PRIMARY_SCENARIO.passes}
+            contacts={orbitopsResult.contacts}
+            currentMinute={currentMinute}
+            onSelectPass={handleSelectPass}
+            isPlainEnglishMode={isPlainEnglishMode}
+          />
+        )}
+
         {activeTab === 'overview' && (
           <TabOverviewGantt
             stations={stations}
@@ -147,6 +184,16 @@ export const App: React.FC = () => {
           />
         )}
 
+        {activeTab === 'simulator' && (
+          <TabLiveDownlinkSim
+            satellites={PRIMARY_SCENARIO.satellites}
+            stations={stations}
+            contacts={orbitopsResult.contacts}
+            currentMinute={currentMinute}
+            isPlainEnglishMode={isPlainEnglishMode}
+          />
+        )}
+
         {activeTab === 'disruption' && (
           <TabDisruptionRecovery
             stations={stations}
@@ -155,16 +202,6 @@ export const App: React.FC = () => {
             onRestoreStation={handleRestoreStation}
             isPlainEnglishMode={isPlainEnglishMode}
             contacts={orbitopsResult.contacts}
-          />
-        )}
-
-        {activeTab === 'globe' && (
-          <TabGlobeConstellation
-            satellites={PRIMARY_SCENARIO.satellites}
-            stations={stations}
-            contacts={orbitopsResult.contacts}
-            currentMinute={currentMinute}
-            isPlainEnglishMode={isPlainEnglishMode}
           />
         )}
 
@@ -177,11 +214,12 @@ export const App: React.FC = () => {
           />
         )}
 
-        {activeTab === 'benchmarks' && (
-          <TabBenchmarksValidator
-            contacts={orbitopsResult.contacts}
-            allPasses={PRIMARY_SCENARIO.passes}
+        {activeTab === 'globe' && (
+          <TabGlobeConstellation
+            satellites={PRIMARY_SCENARIO.satellites}
             stations={stations}
+            contacts={orbitopsResult.contacts}
+            currentMinute={currentMinute}
             isPlainEnglishMode={isPlainEnglishMode}
           />
         )}

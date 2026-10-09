@@ -1,13 +1,14 @@
 import React from 'react';
 import { 
+  Layers,
   CalendarRange, 
+  Radio,
   Flame, 
-  Globe2, 
   FileText, 
-  BarChart3
+  Globe2 
 } from 'lucide-react';
 
-export type ActiveTab = 'overview' | 'disruption' | 'globe' | 'explainer' | 'benchmarks';
+export type ActiveTab = 'manifest' | 'overview' | 'simulator' | 'disruption' | 'explainer' | 'globe';
 
 interface NavigationProps {
   activeTab: ActiveTab;
@@ -22,39 +23,46 @@ export const Navigation: React.FC<NavigationProps> = ({
 }) => {
   const tabs = [
     {
+      id: 'manifest' as ActiveTab,
+      label: '1. Fleet & Pass Manifest',
+      sublabel: 'Master Inventory & Water Tanks',
+      icon: Layers,
+      badge: 'MANIFEST'
+    },
+    {
       id: 'overview' as ActiveTab,
-      label: '1. Mission Overview & Dual-Gantt',
-      sublabel: 'FCFS vs ORBITOPS Comparison',
+      label: '2. Dual-Gantt Compare',
+      sublabel: 'FCFS vs ORBITOPS Head-to-Head',
       icon: CalendarRange,
       badge: 'HERO'
     },
     {
+      id: 'simulator' as ActiveTab,
+      label: '3. Live Downlink & Sim',
+      sublabel: 'Polar Skyplot & Anomaly Injector',
+      icon: Radio,
+      badge: 'SIM'
+    },
+    {
       id: 'disruption' as ActiveTab,
-      label: '2. Live Outage Recovery',
-      sublabel: 'Station Failure & Healing',
+      label: '4. Outage Sandbox',
+      sublabel: 'Station Failure & <50ms Healing',
       icon: Flame,
       badge: disruptionActive ? 'OUTAGE ACTIVE' : 'BREAK IT'
     },
     {
-      id: 'globe' as ActiveTab,
-      label: '3. 3D Constellation & Digital Twin',
-      sublabel: 'Orbits, Tanks & Dish Kinematics',
-      icon: Globe2,
-      badge: '3D'
-    },
-    {
       id: 'explainer' as ActiveTab,
-      label: '4. Decision Lineage & Explainer',
-      sublabel: 'Plain-English & Price of Forcing',
+      label: '5. Flight-Ops Explainer',
+      sublabel: 'Lineage & Price of Forcing',
       icon: FileText,
       badge: 'AUDIT'
     },
     {
-      id: 'benchmarks' as ActiveTab,
-      label: '5. Benchmarks & Validator',
-      sublabel: 'Stress Sweep & Formal Proof',
-      icon: BarChart3,
-      badge: 'VERIFIED'
+      id: 'globe' as ActiveTab,
+      label: '6. 3D Constellation',
+      sublabel: 'Three.js Planetary Twin',
+      icon: Globe2,
+      badge: '3D'
     }
   ];
 
