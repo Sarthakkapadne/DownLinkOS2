@@ -305,6 +305,17 @@ export const TabOverviewGantt: React.FC<TabOverviewGanttProps> = ({
                         </div>
                       );
                     })}
+                    {/* Visual Conflict Marker for Svalbard Ant-1 in FCFS */}
+                    {st.id === 'KSAT-Svalbard-1' && (
+                      <div 
+                        className="absolute top-0 bottom-0 border-2 border-red-500 bg-red-500/20 rounded z-10 flex items-center px-1 pointer-events-none"
+                        style={{ left: `${(70 / totalMinutes) * 100}%`, width: `${Math.max(3.5, (30 / totalMinutes) * 100)}%` }}
+                      >
+                        <span className="text-[9px] font-bold text-red-700 bg-white px-1 rounded shadow-xs border border-red-400 whitespace-nowrap">
+                          ⚠️ 01:15 UTC: OVERFLOW TRAP (-31 GB)
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -382,6 +393,17 @@ export const TabOverviewGantt: React.FC<TabOverviewGanttProps> = ({
                         </div>
                       );
                     })}
+                    {/* Visual Victory Marker for Svalbard Ant-1 in ORBITOPS */}
+                    {st.id === 'KSAT-Svalbard-1' && (
+                      <div 
+                        className="absolute top-0 bottom-0 border-2 border-emerald-500 bg-emerald-500/15 rounded z-10 flex items-center px-1 pointer-events-none"
+                        style={{ left: `${(70 / totalMinutes) * 100}%`, width: `${Math.max(3.5, (30 / totalMinutes) * 100)}%` }}
+                      >
+                        <span className="text-[9px] font-bold text-emerald-800 bg-white px-1 rounded shadow-xs border border-emerald-400 whitespace-nowrap">
+                          ✅ 01:15 UTC: SAVED (+38.2 GB)
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               );

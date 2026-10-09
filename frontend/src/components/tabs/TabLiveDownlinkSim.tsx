@@ -12,7 +12,8 @@ import {
   Zap, 
   Gauge, 
   Compass,
-  FileCheck2
+  FileCheck2,
+  Mic
 } from 'lucide-react';
 
 interface TabLiveDownlinkSimProps {
@@ -89,6 +90,27 @@ export const TabLiveDownlinkSim: React.FC<TabLiveDownlinkSimProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* SPEAKER PITCH GUIDE FOR LIVE DOWNLINK SIM */}
+      <div className="bg-gradient-to-r from-sky-900 to-indigo-900 text-white rounded-2xl p-5 shadow-sm border border-sky-800">
+        <div className="flex items-start gap-3">
+          <div className="p-2.5 bg-sky-500/20 text-sky-300 rounded-xl border border-sky-400/30 flex-shrink-0">
+            <Mic className="w-5 h-5" />
+          </div>
+          <div className="flex-1 space-y-1">
+            <span className="text-xs font-bold text-sky-300 uppercase tracking-wider block">
+              WHAT THIS LIVE SIMULATOR SHOWCASES (PITCH SCRIPT)
+            </span>
+            <p className="text-xs text-slate-200 leading-relaxed font-sans">
+              <strong>1. The Polar Radar (Left):</strong> Points crosshairs at the satellite as it flies across the sky from 0° horizon up to 82.5° elevation.
+              <br />
+              <strong>2. Dynamic DVB-S2X Speedometer (Center):</strong> Proves our engine doesn&apos;t assume a flat bitrate: as elevation rises, bitrate dynamically increases from 200 Mbps to 1,600 Mbps. Watch the blue satellite memory tank drain into the green ground station bucket!
+              <br />
+              <strong>3. Failure Anomaly Buttons (Right):</strong> Click any button to test physical hazards (Zenith Keyhole slew limit, Snow Fade RF loss, or Cable-Wrap limit) and see our autonomous mitigation.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* 1. TOP HEADER & CONTACT SELECTOR */}
       <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
