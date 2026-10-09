@@ -1,0 +1,25 @@
+# Node & Frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.tmp/
+.eslintcache
+*.tsbuildinfo
+
+# Python & Backend
+__pycache__/
+backend/**/__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+.env
+.env.local
+*.log
+
+# OS & IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
