@@ -1,21 +1,18 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Header } from './components/Header';
 import { Navigation, ActiveTab } from './components/Navigation';
-import { TabFleetManifest } from './components/tabs/TabFleetManifest';
+import { TabAlgorithmVisualizer } from './components/tabs/TabAlgorithmVisualizer';
 import { TabOverviewGantt } from './components/tabs/TabOverviewGantt';
 import { TabLiveDownlinkSim } from './components/tabs/TabLiveDownlinkSim';
-import { TabDisruptionRecovery } from './components/tabs/TabDisruptionRecovery';
-import { TabGlobeConstellation } from './components/tabs/TabGlobeConstellation';
-import { TabDecisionExplainer } from './components/tabs/TabDecisionExplainer';
-import { TabBenchmarksValidator } from './components/tabs/TabBenchmarksValidator';
+import { TabFleetManifest } from './components/tabs/TabFleetManifest';
 import { PassDetailModal } from './components/PassDetailModal';
 import { PRIMARY_SCENARIO } from './data/mockScenarios';
 import { SimulationEngine } from './engine/simulationEngine';
 import { GroundStation, ScheduledContact, DisruptionState, PassOpportunity } from './types';
 
 export const App: React.FC = () => {
-  // Navigation & View Mode: Default to Tab 1 (Manifest) or Tab 2 (Overview)
-  const [activeTab, setActiveTab] = useState<ActiveTab>('manifest');
+  // Navigation: Default to Tab 1 (Algorithm Visualizer & Healer)
+  const [activeTab, setActiveTab] = useState<ActiveTab>('algorithm');
   const [isPlainEnglishMode, setIsPlainEnglishMode] = useState<boolean>(true);
 
   // Simulation Clock
@@ -87,7 +84,7 @@ export const App: React.FC = () => {
     );
 
     setDisruptionState(repair.disruptionState);
-    setActiveTab('disruption'); // Jump to disruption tab to show result
+    setActiveTab('algorithm'); // Jump to algorithm tab to show result
   };
 
   // Restore Station to Service
@@ -157,14 +154,11 @@ export const App: React.FC = () => {
 
       {/* Main Workspace Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {activeTab === 'manifest' && (
-          <TabFleetManifest
+        {activeTab === 'algorithm' && (
+          <TabAlgorithmVisualizer
             satellites={PRIMARY_SCENARIO.satellites}
             stations={stations}
             passes={PRIMARY_SCENARIO.passes}
-            contacts={orbitopsResult.contacts}
-            currentMinute={currentMinute}
-            onSelectPass={handleSelectPass}
             isPlainEnglishMode={isPlainEnglishMode}
           />
         )}
@@ -194,32 +188,14 @@ export const App: React.FC = () => {
           />
         )}
 
-        {activeTab === 'disruption' && (
-          <TabDisruptionRecovery
-            stations={stations}
-            disruptionState={disruptionState}
-            onSimulateOutage={handleSimulateOutage}
-            onRestoreStation={handleRestoreStation}
-            isPlainEnglishMode={isPlainEnglishMode}
-            contacts={orbitopsResult.contacts}
-          />
-        )}
-
-        {activeTab === 'explainer' && (
-          <TabDecisionExplainer
-            scheduledContacts={orbitopsResult.contacts}
-            rejectedPasses={orbitopsResult.rejected}
-            allPasses={PRIMARY_SCENARIO.passes}
-            isPlainEnglishMode={isPlainEnglishMode}
-          />
-        )}
-
-        {activeTab === 'globe' && (
-          <TabGlobeConstellation
+        {activeTab === 'manifest' && (
+          <TabFleetManifest
             satellites={PRIMARY_SCENARIO.satellites}
             stations={stations}
+            passes={PRIMARY_SCENARIO.passes}
             contacts={orbitopsResult.contacts}
             currentMinute={currentMinute}
+            onSelectPass={handleSelectPass}
             isPlainEnglishMode={isPlainEnglishMode}
           />
         )}

@@ -76,6 +76,55 @@ export const TabOverviewGantt: React.FC<TabOverviewGanttProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* WHAT THE 1 BUFFER OVERFLOW MEANS DEEP DIVE BANNER */}
+      <div className="bg-gradient-to-r from-rose-50 via-white to-amber-50 border-2 border-rose-200 rounded-2xl p-5 shadow-xs">
+        <div className="flex items-start gap-4">
+          <div className="p-3 bg-rose-500 text-white rounded-xl shadow-xs flex-shrink-0">
+            <AlertTriangle className="w-6 h-6" />
+          </div>
+          <div className="space-y-2 flex-1">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="text-sm font-black text-rose-950 uppercase tracking-wide">
+                Critical Flight-Ops Insight: What Does the &quot;1 Buffer Overflow&quot; in FCFS Actually Mean?
+              </h3>
+              <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-300">
+                DATA PERMANENTLY ERASED
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-1">
+              {/* The Problem in FCFS */}
+              <div className="p-3 bg-white rounded-xl border border-rose-200 space-y-1.5">
+                <span className="font-bold text-rose-900 block flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+                  Why FCFS Failed at 01:15 UTC (Svalbard Ant-1)
+                </span>
+                <p className="text-slate-600 leading-relaxed text-[11px]">
+                  <strong>SuperDove-2104 (Disaster Task)</strong> has a 256 GB solid-state recorder (memory card). It arrives at Svalbard with <strong>242 GB full (94.5% capacity)</strong>. In its next 90-minute orbit, its cameras take +45 GB of new photos.
+                  <br />
+                  <span className="text-rose-700 font-semibold font-mono">242 GB + 45 GB = 287 GB &gt; 256 GB Limit</span>
+                  <br />
+                  Because FCFS booked Svalbard to a routine satellite (SuperDove-2112) 3 minutes earlier, SuperDove-2104 was rejected. Its memory card completely filled up, and <strong>31 GB of wildfire disaster photos were deleted forever into space!</strong>
+                </p>
+              </div>
+
+              {/* How ORBITOPS Solves It */}
+              <div className="p-3 bg-white rounded-xl border border-emerald-300 space-y-1.5 shadow-2xs">
+                <span className="font-bold text-emerald-950 block flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  How ORBITOPS CP-SAT Resolved It (Zero Data Loss)
+                </span>
+                <p className="text-slate-600 leading-relaxed text-[11px]">
+                  ORBITOPS evaluates satellite buffer urgency. Recognizing that SuperDove-2104 was <strong>1 orbit away from catastrophic data overflow</strong>, the CP-SAT solver awarded Svalbard Ant-1 to SuperDove-2104, while cleanly shifting routine satellite SuperDove-2112 (which had 171 GB of free memory) to Svalbard Ant-2.
+                  <br />
+                  <span className="text-emerald-700 font-bold font-mono">Result: 38.2 GB delivered · 0 Buffer Overflows · 0 Photos Lost!</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Overview Intro Banner */}
       <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
