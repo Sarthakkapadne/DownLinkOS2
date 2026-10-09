@@ -6,11 +6,16 @@ import { TabOverviewGantt } from './components/tabs/TabOverviewGantt';
 import { TabLiveDownlinkSim } from './components/tabs/TabLiveDownlinkSim';
 import { TabFleetManifest } from './components/tabs/TabFleetManifest';
 import { PassDetailModal } from './components/PassDetailModal';
+import { ScenarioUploadModal } from './components/ScenarioUploadModal';
 import { PRIMARY_SCENARIO } from './data/mockScenarios';
 import { SimulationEngine } from './engine/simulationEngine';
-import { GroundStation, ScheduledContact, DisruptionState, PassOpportunity } from './types';
+import { GroundStation, ScheduledContact, DisruptionState, PassOpportunity, ScenarioDefinition } from './types';
 
 export const App: React.FC = () => {
+  // Active Scenario Dataset (Defaults to Primary 24h PlanetScope)
+  const [activeScenario, setActiveScenario] = useState<ScenarioDefinition>(PRIMARY_SCENARIO);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState<boolean>(false);
+
   // Navigation: Default to Tab 1 (Algorithm Visualizer & Healer)
   const [activeTab, setActiveTab] = useState<ActiveTab>('algorithm');
   const [isPlainEnglishMode, setIsPlainEnglishMode] = useState<boolean>(true);
@@ -47,24 +52,31 @@ export const App: React.FC = () => {
     return () => clearInterval(interval);
   }, [isPlaying, speed]);
 
+  // Load new scenario dataset
+  const handleLoadScenario = (newScenario: ScenarioDefinition) => {
+    setActiveScenario(newScenario);
+    setStations(newScenario.stations);
+    setCurrentMinute(0);
+  };
+
   // Compute Baseline FCFS Schedule
   const fcfsResult = useMemo(() => {
     return SimulationEngine.runFCFS(
-      PRIMARY_SCENARIO.passes,
+      activeScenario.passes,
       stations,
-      PRIMARY_SCENARIO.satellites
+      activeScenario.satellites
     );
-  }, [stations]);
+  }, [activeScenario, stations]);
 
   // Compute ORBITOPS Intelligent Schedule
   const orbitopsResult = useMemo(() => {
     return SimulationEngine.runOrbitOps(
-      PRIMARY_SCENARIO.passes,
+      activeScenario.passes,
       stations,
-      PRIMARY_SCENARIO.satellites,
+      activeScenario.satellites,
       disruptionState.disruptedStationId
     );
-  }, [stations, disruptionState.disruptedStationId]);
+  }, [activeScenario, stations, disruptionState.disruptedStationId]);
 
   // Handle Station Outage Disruption
   const handleSimulateOutage = (stationId: string) => {
@@ -142,7 +154,8 @@ export const App: React.FC = () => {
         orbitopsMetrics={orbitopsResult.metrics}
         isPlainEnglishMode={isPlainEnglishMode}
         onTogglePlainEnglish={() => setIsPlainEnglishMode(!isPlainEnglishMode)}
-        activeScenarioName={PRIMARY_SCENARIO.name}
+        activeScenarioName={activeScenario.name}
+        onOpenUploadModal={() => setIsUploadModalOpen(true)}
       />
 
       {/* Global Navigation Bar */}
@@ -156,9 +169,9 @@ export const App: React.FC = () => {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {activeTab === 'algorithm' && (
           <TabAlgorithmVisualizer
-            satellites={PRIMARY_SCENARIO.satellites}
+            satellites={activeScenario.satellites}
             stations={stations}
-            passes={PRIMARY_SCENARIO.passes}
+            passes={activeScenario.passes}
             isPlainEnglishMode={isPlainEnglishMode}
           />
         )}
@@ -180,7 +193,7 @@ export const App: React.FC = () => {
 
         {activeTab === 'simulator' && (
           <TabLiveDownlinkSim
-            satellites={PRIMARY_SCENARIO.satellites}
+            satellites={activeScenario.satellites}
             stations={stations}
             contacts={orbitopsResult.contacts}
             currentMinute={currentMinute}
@@ -190,9 +203,9 @@ export const App: React.FC = () => {
 
         {activeTab === 'manifest' && (
           <TabFleetManifest
-            satellites={PRIMARY_SCENARIO.satellites}
+            satellites={activeScenario.satellites}
             stations={stations}
-            passes={PRIMARY_SCENARIO.passes}
+            passes={activeScenario.passes}
             contacts={orbitopsResult.contacts}
             currentMinute={currentMinute}
             onSelectPass={handleSelectPass}
@@ -209,6 +222,14 @@ export const App: React.FC = () => {
           isPlainEnglishMode={isPlainEnglishMode}
         />
       )}
+
+      {/* Dataset Scenario Ingestion Modal */}
+      <ScenarioUploadModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        onLoadScenario={handleLoadScenario}
+        currentScenarioName={activeScenario.name}
+      />
 
       {/* Enterprise Mission Footer */}
       <footer className="bg-white border-t border-slate-200 py-4 px-4 sm:px-6 lg:px-8 text-xs text-slate-500">

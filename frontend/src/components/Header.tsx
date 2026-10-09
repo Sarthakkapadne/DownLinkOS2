@@ -9,7 +9,8 @@ import {
   RotateCcw, 
   TrendingUp, 
   AlertTriangle,
-  Layers
+  Layers,
+  Upload
 } from 'lucide-react';
 import { ScheduleMetrics } from '../types';
 import { minToTimeStr } from '../data/mockScenarios';
@@ -27,6 +28,7 @@ interface HeaderProps {
   isPlainEnglishMode: boolean;
   onTogglePlainEnglish: () => void;
   activeScenarioName: string;
+  onOpenUploadModal: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -41,7 +43,8 @@ export const Header: React.FC<HeaderProps> = ({
   orbitopsMetrics,
   isPlainEnglishMode,
   onTogglePlainEnglish,
-  activeScenarioName
+  activeScenarioName,
+  onOpenUploadModal
 }) => {
   // Score percentage improvement
   const scoreImprovementPct = Math.round(
@@ -130,8 +133,17 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Right: Mode Toggle */}
+        {/* Right: Upload Scenario Dataset & Mode Toggle */}
         <div className="flex items-center gap-2">
+          <button
+            onClick={onOpenUploadModal}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-sky-600 hover:bg-sky-700 text-white transition-colors cursor-pointer shadow-2xs"
+            title="Upload scenario JSON or CSV file"
+          >
+            <Upload className="w-3.5 h-3.5" />
+            <span>Ingest Dataset (JSON/CSV)</span>
+          </button>
+
           <button
             onClick={onTogglePlainEnglish}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 transition-colors cursor-pointer shadow-2xs"
