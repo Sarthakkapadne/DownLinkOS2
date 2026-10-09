@@ -101,3 +101,29 @@ export interface EfficiencyMetrics {
   antennaUtilizationFcfs: number;
   antennaUtilizationOrbitops: number;
 }
+
+export interface PowerUsp {
+  id: string;
+  badge: string;
+  title: string;
+  subtitle: string;
+  formula: string;
+  explanation: string;
+  fcfsComparison: string;
+  metricGain: string;
+  category: 'PHY_LAYER' | 'STORAGE_HEURISTIC' | 'PROTOCOL' | 'KINEMATICS';
+}
+
+export interface TimelineGanttBlock {
+  id: string;
+  satelliteId: string;
+  satelliteName: string;
+  startMinute: number;
+  endMinute: number;
+  actionType: 'DOWNLINK' | 'SLEW' | 'SAVED_STATE' | 'IDLE' | 'OVERFLOW_SHUTDOWN' | 'FAILED_PASS';
+  label: string;
+  bitrateMbps: number;
+  dataTransferredGb: number;
+  statusColor: string;
+  notes: string;
+}

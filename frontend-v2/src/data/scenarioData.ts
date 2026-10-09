@@ -1,4 +1,12 @@
-import { Satellite, GroundStation, PreConditionRule, SimpleAlgorithmCase, EfficiencyMetrics } from '../types';
+import { 
+  Satellite, 
+  GroundStation, 
+  PreConditionRule, 
+  SimpleAlgorithmCase, 
+  EfficiencyMetrics,
+  PowerUsp,
+  TimelineGanttBlock
+} from '../types';
 
 export const INITIAL_SATELLITES: Satellite[] = [
   {
@@ -457,3 +465,197 @@ export const EFFICIENCY_METRICS_DATA: EfficiencyMetrics = {
   antennaUtilizationFcfs: 48.2,
   antennaUtilizationOrbitops: 89.5
 };
+
+export const POWER_FACTOR_USPS: PowerUsp[] = [
+  {
+    id: 'usp-acm',
+    badge: 'USP 1 · PHY LAYER INNOVATION',
+    title: 'Dynamic Atmospheric ACM Profiling',
+    subtitle: 'DVB-S2X Elevation Adaptive ModCod (250 → 1,420 Mbps)',
+    formula: 'R_b(θ) = B_w · log₂(1 + SINR(θ)) · η_atm',
+    explanation: 'Legacy FCFS treats contact windows as flat bitrate blocks (e.g. static 500 Mbps). ORBITOPS models tropospheric attenuation dynamically: down at 10° horizon, thick atmosphere forces QPSK (250 Mbps); overhead at 75°–90° Zenith, thin air allows 256-APSK (1,420 Mbps). Prioritizing high-elevation slots delivers 4.2x higher data density per second.',
+    fcfsComparison: 'FCFS: Flat static bitrate assumption, wastes antenna time at low horizon angles.',
+    metricGain: '+320% Peak Bitrate Density',
+    category: 'PHY_LAYER'
+  },
+  {
+    id: 'usp-cfdp',
+    badge: 'USP 2 · PROTOCOL INNOVATION',
+    title: 'CFDP Class 2 Fractional Resumption',
+    subtitle: 'Zero Retransmission Waste via CCSDS 727.0-B-4 Bookmarks',
+    formula: 'Offset_resume = EOF_Ack(LastVerifiedPDU) + 1 byte',
+    explanation: 'When higher-priority traffic or horizon limits require yielding the dish, ORBITOPS never aborts into the trash. It generates a verified cryptographic EOF receipt: "22.8 GB confirmed." On the next pass (Svalbard or Inuvik polar handoff), the satellite resumes from byte 22.800001 GB, saving 100% of partial passes.',
+    fcfsComparison: 'FCFS: Aborts incomplete passes; forces re-downloading entire 38 GB file next time.',
+    metricGain: '0.0 GB Wasted Retransmissions',
+    category: 'PROTOCOL'
+  },
+  {
+    id: 'usp-buffer',
+    badge: 'USP 3 · STORAGE HEURISTIC',
+    title: 'SSR Buffer Depletion Heuristic',
+    subtitle: 'Predictive Camera Sensor Protection (Zero Sensor Shutoffs)',
+    formula: 'Urgency(t) = P · [d(SSR)/dt] / [Capacity - SSR(t)]',
+    explanation: 'Solid-State Recorders (SSR) fill as cameras capture images. If SSR hits 95%, onboard fault protection commands emergency camera shutdown, destroying mission intelligence. ORBITOPS calculates buffer fullness velocity, automatically preempting routine tracks to clear critical spacecraft (like Pelican at 86%) before camera shutoff.',
+    fcfsComparison: 'FCFS: Blindly finishes routine passes while high-risk satellites overflow and lose data.',
+    metricGain: '0 Camera Overflows (vs 2 in FCFS)',
+    category: 'STORAGE_HEURISTIC'
+  },
+  {
+    id: 'usp-cable',
+    badge: 'USP 4 · KINEMATICS SAFETY',
+    title: 'Cable-Wrap Turntable Accumulator Modeling',
+    subtitle: 'Shortest-Arc Slew with Zero Emergency Mechanical Jams',
+    formula: '|Σ ΔAzimuth| ≤ 270° · (ω_az = 2.0°/s)',
+    explanation: 'Large 7.3m ground dishes have internal RF coaxial and waveguide cables wrapped through the pedestal. Exceeding ±270° trips a hardware limit switch, forcing an 8-minute emergency unwinding cycle that blacks out subsequent passes. ORBITOPS models cable accumulator state, choosing slew paths that keep wrap within safe margins.',
+    fcfsComparison: 'FCFS: Naive slews cross 270° boundary, triggering 8-minute antenna unwrap lockouts.',
+    metricGain: '0 Mechanical Blackouts (100% Safety)',
+    category: 'KINEMATICS'
+  }
+];
+
+export const ORBITOPS_TIMELINE_BLOCKS: TimelineGanttBlock[] = [
+  {
+    id: 'orb-1',
+    satelliteId: 'sat-1',
+    satelliteName: 'SuperDove-21 (Zenith)',
+    startMinute: 8,
+    endMinute: 12,
+    actionType: 'DOWNLINK',
+    label: 'High-Bitrate Zenith Downlink (1,420 Mbps)',
+    bitrateMbps: 1420,
+    dataTransferredGb: 22.8,
+    statusColor: 'bg-sky-500 border-sky-400 text-white',
+    notes: 'Downlinked 22.8 GB during peak overhead elevation (78°).'
+  },
+  {
+    id: 'orb-2',
+    satelliteId: 'sat-1',
+    satelliteName: 'SuperDove-21',
+    startMinute: 12,
+    endMinute: 12.3,
+    actionType: 'SAVED_STATE',
+    label: 'CFDP Checkpoint Bookmark Saved',
+    bitrateMbps: 0,
+    dataTransferredGb: 0,
+    statusColor: 'bg-teal-500 border-teal-400 text-white',
+    notes: 'Digital receipt issued: 22.8 GB confirmed. Zero bytes discarded.'
+  },
+  {
+    id: 'orb-3',
+    satelliteId: 'station',
+    satelliteName: 'KSAT SVA-1 Dish',
+    startMinute: 12.3,
+    endMinute: 12.7,
+    actionType: 'SLEW',
+    label: 'Optimized Motor Slew (22s)',
+    bitrateMbps: 0,
+    dataTransferredGb: 0,
+    statusColor: 'bg-amber-500 border-amber-400 text-slate-900',
+    notes: 'Smooth 44° turn right to Pelican. Cable accumulator +115° (safe).'
+  },
+  {
+    id: 'orb-4',
+    satelliteId: 'sat-2',
+    satelliteName: 'Pelican (High Risk)',
+    startMinute: 12.7,
+    endMinute: 16.5,
+    actionType: 'DOWNLINK',
+    label: 'Pelican Downlink: Buffer Cleared (42.0 GB)',
+    bitrateMbps: 1150,
+    dataTransferredGb: 42.0,
+    statusColor: 'bg-emerald-500 border-emerald-400 text-white',
+    notes: 'SSR dropped from 86% -> 20%. Camera protected from overflow.'
+  },
+  {
+    id: 'orb-5',
+    satelliteId: 'sat-3',
+    satelliteName: 'SkySat (Setting)',
+    startMinute: 13,
+    endMinute: 13.9,
+    actionType: 'IDLE',
+    label: 'Sat 3 Horizon Trap Safely Avoided',
+    bitrateMbps: 0,
+    dataTransferredGb: 0,
+    statusColor: 'bg-slate-300 border-slate-400 text-slate-700',
+    notes: 'Avoided futile 45s turn to setting satellite. Set at 01:13:30.'
+  },
+  {
+    id: 'orb-6',
+    satelliteId: 'sat-1',
+    satelliteName: 'SuperDove-21 (Next Pass)',
+    startMinute: 18,
+    endMinute: 20,
+    actionType: 'DOWNLINK',
+    label: 'Next Pass Resumed from GB 22.9 (+15.6 GB)',
+    bitrateMbps: 1420,
+    dataTransferredGb: 15.6,
+    statusColor: 'bg-indigo-500 border-indigo-400 text-white',
+    notes: 'Completed 100% of payload in 88s. Zero duplicate bytes transmitted.'
+  }
+];
+
+export const FCFS_TIMELINE_BLOCKS: TimelineGanttBlock[] = [
+  {
+    id: 'fcfs-1',
+    satelliteId: 'sat-1',
+    satelliteName: 'SuperDove-21',
+    startMinute: 8,
+    endMinute: 15,
+    actionType: 'DOWNLINK',
+    label: 'Blindly Stays on Sat 1 Until End of Pass',
+    bitrateMbps: 850,
+    dataTransferredGb: 38.4,
+    statusColor: 'bg-slate-500 border-slate-600 text-white',
+    notes: 'Ignores other competing satellites until Sat 1 window ends.'
+  },
+  {
+    id: 'fcfs-2',
+    satelliteId: 'station',
+    satelliteName: 'KSAT SVA-1 Dish',
+    startMinute: 15,
+    endMinute: 15.8,
+    actionType: 'SLEW',
+    label: 'Futile Slew to Sat 3 (45s Slew)',
+    bitrateMbps: 0,
+    dataTransferredGb: 0,
+    statusColor: 'bg-amber-600 border-amber-700 text-white',
+    notes: 'Turns dish towards Sat 3 even though Sat 3 already set below horizon!'
+  },
+  {
+    id: 'fcfs-3',
+    satelliteId: 'sat-3',
+    satelliteName: 'SkySat',
+    startMinute: 15.8,
+    endMinute: 17,
+    actionType: 'FAILED_PASS',
+    label: 'FAILED: Sat 3 Already Below Horizon (0 GB)',
+    bitrateMbps: 0,
+    dataTransferredGb: 0,
+    statusColor: 'bg-red-500 border-red-600 text-white',
+    notes: 'Signal lock failed: Sat 3 dropped below 5° mask at 01:13:30.'
+  },
+  {
+    id: 'fcfs-4',
+    satelliteId: 'sat-2',
+    satelliteName: 'Pelican',
+    startMinute: 14.5,
+    endMinute: 18,
+    actionType: 'OVERFLOW_SHUTDOWN',
+    label: 'CATASTROPHIC: Pelican Memory Hits 100% (Camera Off)',
+    bitrateMbps: 0,
+    dataTransferredGb: 0,
+    statusColor: 'bg-rose-700 border-rose-800 text-white',
+    notes: 'Neglected Pelican hits 100% buffer fullness: camera emergency shutdown!'
+  }
+];
+
+export const ACM_ELEVATION_POINTS = [
+  { elevationDeg: 5, bitrateMbps: 150, modCod: 'QPSK 1/4 (Low Signal)' },
+  { elevationDeg: 10, bitrateMbps: 250, modCod: 'QPSK 1/2' },
+  { elevationDeg: 20, bitrateMbps: 550, modCod: '8-PSK 2/3' },
+  { elevationDeg: 35, bitrateMbps: 850, modCod: '16-APSK 3/4' },
+  { elevationDeg: 55, bitrateMbps: 1180, modCod: '64-APSK 5/6' },
+  { elevationDeg: 75, bitrateMbps: 1380, modCod: '128-APSK 7/8' },
+  { elevationDeg: 90, bitrateMbps: 1420, modCod: '256-APSK 8/9 (Zenith Peak)' }
+];
+

@@ -3,6 +3,7 @@ import { Header } from './components/Header';
 import { SkyHorizonView } from './components/SkyHorizonView';
 import { PreConditionsGrid } from './components/PreConditionsGrid';
 import { AlgorithmWalkthrough } from './components/AlgorithmWalkthrough';
+import { ComparativeMissionDashboard } from './components/ComparativeMissionDashboard';
 import { INITIAL_SATELLITES, INITIAL_GROUND_STATION } from './data/scenarioData';
 import { Satellite, GroundStation } from './types';
 import { 
@@ -12,7 +13,8 @@ import {
   Radio, 
   Layers, 
   Sparkles,
-  BookOpen
+  BookOpen,
+  BarChart3
 } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -69,6 +71,13 @@ export const App: React.FC = () => {
                 <span>Step-by-Step Algorithm</span>
                 <ArrowDown className="w-3.5 h-3.5" />
               </button>
+              <button
+                onClick={() => scrollToSection('comparative-dashboard-section')}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition border border-indigo-500/40 cursor-pointer shadow-sm"
+              >
+                <BarChart3 className="w-3.5 h-3.5" />
+                <span>Benchmark Dashboard (vs FCFS)</span>
+              </button>
             </div>
           </div>
 
@@ -106,6 +115,14 @@ export const App: React.FC = () => {
             groundStation={groundStation}
           />
         </section>
+
+        {/* ======================================================== */}
+        {/* SECTION 4: COMPARATIVE MISSION DASHBOARD & POWER USPs     */}
+        {/* ======================================================== */}
+        <section id="comparative-dashboard-section" aria-label="Comparative Operations Dashboard vs FCFS">
+          <ComparativeMissionDashboard />
+        </section>
+
 
       </main>
 
