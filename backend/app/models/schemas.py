@@ -48,6 +48,7 @@ class PassOpportunityModel(BaseModel):
     cable_angle_los: float = 0.0
     satellite_buffer_at_aos: float = 100.0
     buffer_fill_pct: float = 50.0
+    urgency_score: float = 50.0
 
 class ScheduledContactModel(BaseModel):
     id: str

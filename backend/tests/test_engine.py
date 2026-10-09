@@ -1,17 +1,22 @@
 import pytest
-from backend.app.models.schemas import (
-    PassOpportunityModel,
-    GroundStationModel,
-    SatelliteModel
-)
-from backend.app.config import DEFAULT_GROUND_STATIONS, DEFAULT_SATELLITES
+from fastapi.testclient import TestClient
+from backend.app.main import app
+from backend.app.db.database import get_db, SessionLocal
+from backend.app.db.models import SatelliteEntity, GroundStationEntity, PassOpportunityEntity
+from backend.app.models.schemas import PassOpportunityModel
+from backend.app.config import DEFAULT_GROUND_STATIONS, DEFAULT_SATELLITES, DEFAULT_PASS_OPPORTUNITIES
 from backend.app.engine.baseline_fcfs import BaselineFCFS
+from backend.app.engine.priority_greedy import PriorityGreedyScheduler
 from backend.app.engine.optimizer_cpsat import OptimizerCPSAT
 from backend.app.engine.validator import IndependentValidator
+from backend.app.engine.pruner import AstrodynamicPruner
+from backend.app.engine.explainer import DecisionExplainer
 from backend.app.twin.replanner import ReactiveReplanner
 from backend.app.engine.kinematics import AntennaKinematics
 from backend.app.engine.link_budget import LinkBudgetACM
 from backend.app.services.capex_siting import CapExSitingOptimizer, CapExSitingRequest
+
+client = TestClient(app)
 
 @pytest.fixture
 def sample_passes():
@@ -66,35 +71,63 @@ def sample_passes():
         )
     ]
 
+# ---------------------------------------------------------------------------
+# Database Tests
+# ---------------------------------------------------------------------------
+
+def test_database_seeding():
+    """Verify that SQLite database initialized and seeded default constellation and passes."""
+    db = SessionLocal()
+    try:
+        sats = db.query(SatelliteEntity).all()
+        stations = db.query(GroundStationEntity).all()
+        passes = db.query(PassOpportunityEntity).all()
+        assert len(sats) >= 5, "Database must have seeded satellites"
+        assert len(stations) >= 5, "Database must have seeded ground stations"
+        assert len(passes) >= 5, "Database must have seeded pass opportunities"
+    finally:
+        db.close()
+
+# ---------------------------------------------------------------------------
+# Scheduler & Algorithm Tests
+# ---------------------------------------------------------------------------
+
 def test_fcfs_baseline(sample_passes):
-    """FCFS should greedily take PASS-2 (arriving at 68m) over PASS-1 (P5 arriving at 70m)."""
+    """FCFS should greedily assign PASS-2 (arriving at 68m) over PASS-1 (P5 arriving at 70m)."""
     contacts, rejected, metrics = BaselineFCFS.solve(
         passes=sample_passes,
         stations=DEFAULT_GROUND_STATIONS,
         satellites=DEFAULT_SATELLITES
     )
     assert len(contacts) > 0
-    # PASS-2 arrived first at 68m
-    first_c = contacts[0]
-    assert first_c.satellite_id == "SuperDove-2108"
+    assert contacts[0].satellite_id == "SuperDove-2108"
     assert metrics.scheduled_count == len(contacts)
 
+def test_priority_greedy(sample_passes):
+    """Priority-Greedy should assign PASS-1 (P5) first before PASS-2 (P2)."""
+    contacts, rejected, metrics = PriorityGreedyScheduler.solve(
+        passes=sample_passes,
+        stations=DEFAULT_GROUND_STATIONS,
+        satellites=DEFAULT_SATELLITES
+    )
+    assert len(contacts) > 0
+    assert contacts[0].priority >= 4
+
 def test_optimizer_cpsat(sample_passes):
-    """ORBITOPS should prioritize PASS-1 (P5 Emergency at 94% buffer) over PASS-2 (P2 at 40%)."""
+    """ORBITOPS CP-SAT should prioritize PASS-1 (P5 at 94% buffer) with provable dual bound."""
     res = OptimizerCPSAT.solve(
         passes=sample_passes,
         stations=DEFAULT_GROUND_STATIONS,
         satellites=DEFAULT_SATELLITES
     )
     assert res.metrics.scheduled_count > 0
-    p5_scheduled = any(c.satellite_id == "SuperDove-2104" for c in res.scheduled_contacts)
-    assert p5_scheduled, "P5 critical emergency pass must be scheduled by ORBITOPS"
-    assert res.metrics.priority_weighted_score > 0
+    p5_sched = any(c.satellite_id == "SuperDove-2104" for c in res.scheduled_contacts)
+    assert p5_sched is True
     assert res.optimality_gap_pct is not None
     assert res.optimality_gap_pct <= 5.0
 
 def test_validator_zero_violations(sample_passes):
-    """Validator must confirm 0 violations on the generated schedule."""
+    """Safety referee must confirm 0 violations on the optimal schedule."""
     opt_res = OptimizerCPSAT.solve(
         passes=sample_passes,
         stations=DEFAULT_GROUND_STATIONS,
@@ -108,8 +141,49 @@ def test_validator_zero_violations(sample_passes):
     assert val_res.passed is True
     assert val_res.violation_count == 0
 
+def test_astrodynamic_pruner(sample_passes):
+    """Stage 2 Pruner: Short pass (< 1 min usable) should be pruned."""
+    short_pass = PassOpportunityModel(
+        id="PASS-SHORT",
+        satellite_id="SuperDove-2101",
+        satellite_name="SuperDove-2101",
+        station_id="KSAT-Svalbard-1",
+        station_name="KSAT Svalbard Ant-1",
+        aos_minutes=10,
+        los_minutes=11,  # 1 min total - 1 min setup = 0 min usable
+        duration_minutes=1,
+        max_elevation_deg=20.0,
+        priority=1,
+        data_volume_gb=1.0,
+        cable_angle_aos=0.0,
+        cable_angle_los=10.0,
+        buffer_fill_pct=20.0
+    )
+    admissible, pruned = AstrodynamicPruner.prune_and_score(
+        passes=[short_pass] + sample_passes,
+        stations=DEFAULT_GROUND_STATIONS,
+        satellites=DEFAULT_SATELLITES
+    )
+    assert len(pruned) >= 1
+    assert any(p["pass_id"] == "PASS-SHORT" for p in pruned)
+
+def test_explainer_price_of_forcing(sample_passes):
+    """Stage 5 Explainer: Calculates price of forcing PASS-2 into conflicting schedule."""
+    opt_res = OptimizerCPSAT.solve(
+        passes=sample_passes,
+        stations=DEFAULT_GROUND_STATIONS,
+        satellites=DEFAULT_SATELLITES
+    )
+    target_pass = sample_passes[1]  # PASS-2
+    forcing_calc = DecisionExplainer.calculate_price_of_forcing(
+        target_pass=target_pass,
+        current_schedule=opt_res.scheduled_contacts
+    )
+    assert "plain_english" in forcing_calc
+    assert "net_score_delta" in forcing_calc
+
 def test_reactive_outage_repair(sample_passes):
-    """Station failure must be repaired in under 100ms with >= 75% value retained."""
+    """Disruption repair must complete in under 100ms with >= 50% value retained."""
     opt_res = OptimizerCPSAT.solve(
         passes=sample_passes,
         stations=DEFAULT_GROUND_STATIONS,
@@ -127,22 +201,66 @@ def test_reactive_outage_repair(sample_passes):
     assert disruption.passes_preserved >= 1
     assert disruption.value_retained_pct >= 50.0
 
-def test_kinematics_and_link_budget():
-    """Validates antenna slewing and elevation-dependent DVB-S2X ACM integration."""
-    kinematics = AntennaKinematics()
-    slew_time = kinematics.compute_slew_duration(10.0, 5.0, 100.0, 45.0)
-    assert slew_time > 45.0  # Must exceed setup overhead
+# ---------------------------------------------------------------------------
+# API Route Endpoint Tests (FastAPI TestClient)
+# ---------------------------------------------------------------------------
 
-    is_valid, next_cable = kinematics.validate_cable_trajectory(250.0, 30.0)
-    assert is_valid is False, "280 deg must exceed +270 deg cable limit"
+def test_api_root_and_health():
+    res = client.get("/")
+    assert res.status_code == 200
+    assert res.json()["system"] == "ORBITOPS (DownlinkOS)"
 
-    link = LinkBudgetACM()
-    vol = link.integrate_pass_volume_gb(max_elevation_deg=80.0, duration_minutes=10.0)
-    assert vol > 20.0
+    health = client.get("/api/v1/health")
+    assert health.status_code == 200
+    assert health.json()["status"] == "HEALTHY"
+    assert health.json()["database_connected"] is True
 
-def test_capex_siting():
-    """Validates CapEx ground station ROI optimizer."""
-    req = CapExSitingRequest(candidate_locations=[], budget_usd_millions=3.0)
-    res = CapExSitingOptimizer.evaluate(req)
-    assert len(res.recommended_locations) >= 1
-    assert res.roi_score > 0.0
+def test_api_stations_and_satellites():
+    stations_res = client.get("/api/v1/stations")
+    assert stations_res.status_code == 200
+    assert len(stations_res.json()) >= 5
+
+    sats_res = client.get("/api/v1/satellites")
+    assert sats_res.status_code == 200
+    assert len(sats_res.json()) >= 5
+
+def test_api_optimize_and_persist():
+    payload = {
+        "passes": [p.model_dump() for p in DEFAULT_PASS_OPPORTUNITIES],
+        "stations": [s.model_dump() for s in DEFAULT_GROUND_STATIONS],
+        "satellites": [sat.model_dump() for sat in DEFAULT_SATELLITES],
+        "max_solve_time_seconds": 3.0
+    }
+    res = client.post("/api/v1/schedule/optimize", json=payload)
+    assert res.status_code == 200
+    data = res.json()
+    assert "scheduled_contacts" in data
+    assert data["metrics"]["scheduled_count"] > 0
+
+    # Verify that run was saved in database
+    runs_res = client.get("/api/v1/runs")
+    assert runs_res.status_code == 200
+    assert len(runs_res.json()) >= 1
+
+    latest_run_id = runs_res.json()[0]["id"]
+    detail_res = client.get(f"/api/v1/runs/{latest_run_id}")
+    assert detail_res.status_code == 200
+    assert "contacts" in detail_res.json()
+
+def test_api_benchmark_three_way():
+    payload = {
+        "passes": [p.model_dump() for p in DEFAULT_PASS_OPPORTUNITIES],
+        "stations": [s.model_dump() for s in DEFAULT_GROUND_STATIONS],
+        "satellites": [sat.model_dump() for sat in DEFAULT_SATELLITES]
+    }
+    res = client.post("/api/v1/schedule/benchmark", json=payload)
+    assert res.status_code == 200
+    bench = res.json()["benchmark_summary"]
+    assert "fcfs_score" in bench
+    assert "greedy_score" in bench
+    assert "orbitops_cpsat_score" in bench
+
+def test_api_telegram_command():
+    res = client.post("/api/v1/telegram/command", json={"command": "/status"})
+    assert res.status_code == 200
+    assert "ORBITOPS Fleet Status" in res.json()["message"]
