@@ -29,12 +29,6 @@ export interface Satellite {
     timeRemainingSec: number;
     totalDurationSec: number;
   };
-  scidHex?: string;
-  rfCarrier?: string;
-  bitrateText?: string;
-  slewTimeSec?: number;
-  slewAngleDeg?: number;
-  algorithmAction?: string;
 }
 
 export interface GroundStation {
@@ -79,7 +73,7 @@ export interface SimpleAlgorithmCase {
   smartAlgorithmChoice: string;
   simpleOutcomeSummary: string;
   miniVisualState: {
-    dishAngleDeg: number; // 0 = straight up (zenith), positive = right, negative = left
+    dishAngleDeg: number;
     dishElevationDeg: number;
     connectedSatelliteId: string | null;
     highlightSatelliteId: string | null;
@@ -91,5 +85,19 @@ export interface SimpleAlgorithmCase {
     transferredGb: number;
     targetGb: number;
     checkpointSavedGb?: number;
+    isNextPass?: boolean;
+    showCharts?: boolean;
   };
+}
+
+export interface EfficiencyMetrics {
+  orbitopsDataDeliveredGb: number;
+  fcfsDataDeliveredGb: number;
+  dataGainPercent: number;
+  retransmissionWastedGbFcfs: number;
+  retransmissionWastedGbOrbitops: number;
+  bufferOverflowsFcfs: number;
+  bufferOverflowsOrbitops: number;
+  antennaUtilizationFcfs: number;
+  antennaUtilizationOrbitops: number;
 }

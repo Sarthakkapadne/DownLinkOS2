@@ -60,7 +60,7 @@ export const App: React.FC = () => {
                 className="flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs transition shadow-sm cursor-pointer"
               >
                 <BookOpen className="w-3.5 h-3.5" />
-                <span>See The 7 Physical Rules</span>
+                <span>See The 6 Physical Rules</span>
               </button>
               <button
                 onClick={() => scrollToSection('algorithm-walkthrough-section')}
@@ -91,9 +91,9 @@ export const App: React.FC = () => {
         </section>
 
         {/* ======================================================== */}
-        {/* SECTION 2: THE 7 REAL-WORLD RULES / PRE-CONDITIONS       */}
+        {/* SECTION 2: THE 6 REAL-WORLD RULES / PRE-CONDITIONS       */}
         {/* ======================================================== */}
-        <section id="preconditions-section" aria-label="The 7 Pre-Conditions Evaluated Before Decisions">
+        <section id="preconditions-section" aria-label="The 6 Pre-Conditions Evaluated Before Decisions">
           <PreConditionsGrid />
         </section>
 
