@@ -29,7 +29,13 @@ export const INITIAL_SATELLITES: Satellite[] = [
       losUtc: '01:19:30 UTC',
       timeRemainingSec: 210,
       totalDurationSec: 570
-    }
+    },
+    scidHex: '0x4796',
+    rfCarrier: '8.25 GHz X-Band (RHCP)',
+    bitrateText: '1,420 Mbps · 64APSK (Zenith Peak)',
+    slewTimeSec: 0,
+    slewAngleDeg: 0,
+    algorithmAction: 'Downlinking routine survey; buffer 93% full (critical overflow risk)'
   },
   {
     id: 'sat-2',
@@ -59,7 +65,13 @@ export const INITIAL_SATELLITES: Satellite[] = [
       losUtc: '01:15:45 UTC',
       timeRemainingSec: 210, // Exactly 3.5 minutes remaining before it dips below 5°!
       totalDurationSec: 585
-    }
+    },
+    scidHex: '0x5821',
+    rfCarrier: '8.15 GHz X-Band (RHCP)',
+    bitrateText: '420 Mbps · 16APSK (22.4° Setting)',
+    slewTimeSec: 35,
+    slewAngleDeg: 52,
+    algorithmAction: 'Must harvest first! Only 3m 30s before horizon cutoff or data is permanently lost'
   },
   {
     id: 'sat-3',
@@ -89,7 +101,13 @@ export const INITIAL_SATELLITES: Satellite[] = [
       losUtc: '01:23:00 UTC',
       timeRemainingSec: 660, // Full 11-min contact window ahead!
       totalDurationSec: 660
-    }
+    },
+    scidHex: '0x4A12',
+    rfCarrier: '8.20 GHz X-Band (RHCP)',
+    bitrateText: '280 Mbps @ 12° AOS -> 1,420 Mbps @ Zenith',
+    slewTimeSec: 38,
+    slewAngleDeg: -52,
+    algorithmAction: 'Priority 1, but defer 3m while taking Sat 2! By the time we swing back, elevation climbs to 65° (yield 3.7x higher!)'
   }
 ];
 

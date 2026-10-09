@@ -29,6 +29,12 @@ export interface Satellite {
     timeRemainingSec: number;
     totalDurationSec: number;
   };
+  scidHex?: string;
+  rfCarrier?: string;
+  bitrateText?: string;
+  slewTimeSec?: number;
+  slewAngleDeg?: number;
+  algorithmAction?: string;
 }
 
 export interface GroundStation {

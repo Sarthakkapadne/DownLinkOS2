@@ -1,19 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Satellite, GroundStation } from '../types';
+import { SatelliteInfoCard } from './SatelliteInfoCard';
 import { 
   Radio, 
   Play, 
-  Pause, 
-  HardDrive, 
-  Clock, 
-  Compass, 
-  Flame, 
-  Eye, 
-  Leaf, 
-  AlertTriangle,
-  Zap,
-  BookmarkCheck,
-  CheckCircle2
+  Pause,
+  Compass,
+  Flame,
+  Eye,
+  Leaf
 } from 'lucide-react';
 
 interface SkyHorizonViewProps {
@@ -35,7 +30,6 @@ export const SkyHorizonView: React.FC<SkyHorizonViewProps> = ({
 
   const activeSat = satellites.find((s) => s.id === activeSatelliteId) || satellites[0];
   const targetGb = activeSat?.passDataVolumeGb || 38.4;
-  const progressPercent = Math.min(100, Math.round((transferredGb / targetGb) * 100));
 
   useEffect(() => {
     if (!isPlaying) return;
@@ -77,89 +71,132 @@ export const SkyHorizonView: React.FC<SkyHorizonViewProps> = ({
                 {groundStation.name}
               </h2>
               <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                LIVE PASS TRACKING
+                LIVE 180° PASS HORIZON
               </span>
             </div>
             <p className="text-xs text-slate-400 font-mono">
-              {groundStation.location} · Lat {groundStation.coordinates} · Elevation Mask: {groundStation.elevationMaskDeg}° · Dish: {groundStation.dishDiameterM}m Parabolic
+              {groundStation.location} &bull; Lat {groundStation.coordinates} &bull; Elevation Mask: {groundStation.elevationMaskDeg}° &bull; Dish: {groundStation.dishDiameterM}m Parabolic
             </p>
           </div>
         </div>
 
-        {/* Live Downlink Metric Strip */}
-        <div className="flex items-center gap-4 text-xs font-mono">
+        {/* Live Downlink Metric Strip & Simulation Control */}
+        <div className="flex items-center gap-3 text-xs font-mono">
           <div className="bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700">
-            <span className="text-slate-400">Current Target:</span>{' '}
-            <strong className="text-sky-300">{activeSat.name}</strong>
+            <span className="text-slate-400">Target:</span>{' '}
+            <strong className="text-sky-300">{activeSat.name.split('-')[0]}</strong>
           </div>
           <div className="bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700 hidden sm:block">
-            <span className="text-slate-400">Rate:</span>{' '}
-            <strong className="text-emerald-400">{groundStation.currentBitrateMbps} Mbps</strong>
-            <span className="text-[10px] text-slate-400 ml-1">(DVB-S2X ACM)</span>
+            <span className="text-slate-400">DVB-S2X Rate:</span>{' '}
+            <strong className="text-emerald-400">
+              {activeSatelliteId === 'sat-1' ? '1,420 Mbps' : activeSatelliteId === 'sat-2' ? '420 Mbps' : '280 Mbps'}
+            </strong>
           </div>
           <button
             onClick={() => setIsPlaying(!isPlaying)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-sans text-xs font-medium transition cursor-pointer"
           >
             {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-            {isPlaying ? 'Pause Sim' : 'Resume Sim'}
+            {isPlaying ? 'Pause' : 'Play'}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile / Tablet Satellite Switcher Bar (visible below lg) */}
+      <div className="lg:hidden bg-slate-100 border-b border-slate-200 px-3 py-2 flex items-center justify-between gap-2 overflow-x-auto">
+        <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider flex-shrink-0">
+          Focus Satellite:
+        </span>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onSelectSatellite?.('sat-3')}
+            className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition ${
+              activeSatelliteId === 'sat-3'
+                ? 'bg-red-600 text-white shadow-xs'
+                : 'bg-white text-slate-700 border border-slate-200'
+            }`}
+          >
+            <Flame className="w-3 h-3" />
+            3. SkySat (P1)
+          </button>
+          <button
+            onClick={() => onSelectSatellite?.('sat-1')}
+            className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition ${
+              activeSatelliteId === 'sat-1'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'bg-white text-slate-700 border border-slate-200'
+            }`}
+          >
+            <Leaf className="w-3 h-3" />
+            1. SuperDove (P3 Active)
+          </button>
+          <button
+            onClick={() => onSelectSatellite?.('sat-2')}
+            className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition ${
+              activeSatelliteId === 'sat-2'
+                ? 'bg-sky-600 text-white shadow-xs'
+                : 'bg-white text-slate-700 border border-slate-200'
+            }`}
+          >
+            <Eye className="w-3 h-3" />
+            2. Pelican (P2 Expiring)
           </button>
         </div>
       </div>
 
       {/* Main 180° Sky Dome Canvas Area */}
-      <div className="relative p-3 sm:p-5 lg:p-6 bg-gradient-to-b from-sky-50/50 via-white to-slate-50 border-b border-slate-200 overflow-hidden">
+      <div className="relative p-2 sm:p-4 bg-gradient-to-b from-sky-50/70 via-white to-slate-50 border-b border-slate-200 overflow-hidden">
         
-        {/* Sky Background Grid & Horizon Container */}
-        <div className="w-full max-w-6xl mx-auto relative h-[600px] sm:h-[620px]">
+        {/* Sky Container with 740px Height for Spacious Non-Overlapping Dialogue Cards */}
+        <div className="w-full max-w-7xl mx-auto relative h-[720px] lg:h-[750px]">
           
           {/* SVG 180-Degree Horizon Sky Dome */}
           <svg
-            className="w-full h-full absolute inset-0 overflow-visible"
-            viewBox="0 0 1000 520"
+            className="w-full h-full absolute inset-0 overflow-visible pointer-events-none"
+            viewBox="0 0 1200 680"
             preserveAspectRatio="xMidYMax meet"
           >
             <defs>
               {/* Downlink Beam Gradient */}
               <linearGradient id="beamGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#0284c7" stopOpacity="0.8" />
-                <stop offset="50%" stopColor="#38bdf8" stopOpacity="0.4" />
+                <stop offset="0%" stopColor="#0284c7" stopOpacity="0.85" />
+                <stop offset="50%" stopColor="#38bdf8" stopOpacity="0.45" />
                 <stop offset="100%" stopColor="#0284c7" stopOpacity="0.9" />
               </linearGradient>
 
               {/* Pulse Animation Filter */}
               <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="3" result="blur" />
+                <feGaussianBlur stdDeviation="3.5" result="blur" />
                 <feComposite in="SourceGraphic" in2="blur" operator="over" />
               </filter>
             </defs>
 
-            {/* Ground Horizon Base Line */}
+            {/* Ground Horizon Base Line at Y = 570 */}
             <line
               x1="40"
-              y1="470"
-              x2="960"
-              y2="470"
-              stroke="#64748b"
+              y1="570"
+              x2="1160"
+              y2="570"
+              stroke="#475569"
               strokeWidth="2.5"
             />
-            {/* 5° Elevation Mask Line */}
+            {/* 5° Elevation Mask Line at Y = 545 */}
             <line
               x1="40"
-              y1="450"
-              x2="960"
-              y2="450"
+              y1="545"
+              x2="1160"
+              y2="545"
               stroke="#cbd5e1"
               strokeWidth="1.5"
               strokeDasharray="4 4"
             />
-            <text x="50" y="444" fill="#94a3b8" fontSize="11" fontFamily="monospace">
-              5° Terrain / Elevation Mask Threshold
+            <text x="50" y="538" fill="#94a3b8" fontSize="11" fontFamily="monospace">
+              5° Terrain / Elevation Mask Cutoff Threshold
             </text>
 
-            {/* 180-Degree Sky Horizon Outer Arch (90° Zenith at top) */}
+            {/* 180-Degree Sky Horizon Outer Arch (Apex at 600, 260) */}
             <path
-              d="M 80 470 A 420 390 0 0 1 920 470"
+              d="M 100 570 A 500 310 0 0 1 1100 570"
               fill="none"
               stroke="#e2e8f0"
               strokeWidth="2"
@@ -167,366 +204,264 @@ export const SkyHorizonView: React.FC<SkyHorizonViewProps> = ({
             />
             {/* 60° Elevation Arc */}
             <path
-              d="M 210 470 A 290 270 0 0 1 790 470"
+              d="M 260 570 A 340 210 0 0 1 940 570"
               fill="none"
               stroke="#f1f5f9"
               strokeWidth="1.5"
             />
             {/* 30° Elevation Arc */}
             <path
-              d="M 350 470 A 150 150 0 0 1 650 470"
+              d="M 420 570 A 180 110 0 0 1 780 570"
               fill="none"
               stroke="#f8fafc"
               strokeWidth="1.5"
             />
 
             {/* Horizon Left: AOS 0° */}
-            <text x="60" y="488" fill="#475569" fontSize="12" fontWeight="bold">
+            <text x="60" y="592" fill="#334155" fontSize="12" fontWeight="bold">
               0° AOS Horizon (North)
             </text>
-            <text x="60" y="502" fill="#94a3b8" fontSize="10" fontFamily="monospace">
-              Ascending Horizon
-            </text>
-
-            {/* Zenith Center: 90° Zenith */}
-            <text x="500" y="26" fill="#0369a1" fontSize="13" fontWeight="bold" textAnchor="middle">
-              90° ZENITH (Peak Overhead)
-            </text>
-            <text x="500" y="40" fill="#64748b" fontSize="10" fontFamily="monospace" textAnchor="middle">
-              Shortest Distance (505 km) · Maximum Speed (1,420 Mbps)
+            <text x="60" y="608" fill="#94a3b8" fontSize="10" fontFamily="monospace">
+              Ascending Pass Ingress
             </text>
 
             {/* Horizon Right: LOS 0° */}
-            <text x="940" y="488" fill="#475569" fontSize="12" fontWeight="bold" textAnchor="end">
+            <text x="1140" y="592" fill="#334155" fontSize="12" fontWeight="bold" textAnchor="end">
               0° LOS Horizon (South)
             </text>
-            <text x="940" y="502" fill="#94a3b8" fontSize="10" fontFamily="monospace" textAnchor="end">
-              Descending Horizon
+            <text x="1140" y="608" fill="#94a3b8" fontSize="10" fontFamily="monospace" textAnchor="end">
+              Descending Pass Egress
             </text>
 
-            {/* Active RF Downlink Beam (Center Dish to Sat 1) */}
+            {/* ======================================================== */}
+            {/* ACTIVE RF DOWNLINK BEAM (Center Dish to Sat 1 Zenith)     */}
+            {/* ======================================================== */}
             {activeSatelliteId === 'sat-1' && (
               <g>
+                {/* Translucent RF Cone */}
                 <polygon
-                  points="496,440 504,440 508,90 492,90"
+                  points="596,550 604,550 610,268 590,268"
                   fill="url(#beamGradient)"
-                  opacity="0.35"
+                  opacity="0.4"
                 />
+                {/* Core Carrier Beam Line */}
                 <line
-                  x1="500"
-                  y1="440"
-                  x2="500"
-                  y2="90"
+                  x1="600"
+                  y1="550"
+                  x2="600"
+                  y2="268"
                   stroke="#0284c7"
-                  strokeWidth="3"
+                  strokeWidth="3.5"
                   filter="url(#glow)"
                 />
-                {/* Flowing Data Pulses */}
-                <circle cx="500" cy="160" r="4" fill="#38bdf8">
-                  <animate attributeName="cy" from="90" to="430" dur="1.2s" repeatCount="indefinite" />
-                  <animate attributeName="opacity" values="1;0.8;0.2" dur="1.2s" repeatCount="indefinite" />
+                {/* Flowing Data Pulses Downward */}
+                <circle cx="600" cy="320" r="4.5" fill="#38bdf8">
+                  <animate attributeName="cy" from="268" to="545" dur="1.1s" repeatCount="indefinite" />
+                  <animate attributeName="opacity" values="1;0.9;0.1" dur="1.1s" repeatCount="indefinite" />
                 </circle>
-                <circle cx="500" cy="260" r="4.5" fill="#0284c7">
-                  <animate attributeName="cy" from="90" to="430" dur="1.2s" begin="0.4s" repeatCount="indefinite" />
-                  <animate attributeName="opacity" values="1;0.8;0.2" dur="1.2s" begin="0.4s" repeatCount="indefinite" />
+                <circle cx="600" cy="400" r="5" fill="#0284c7">
+                  <animate attributeName="cy" from="268" to="545" dur="1.1s" begin="0.35s" repeatCount="indefinite" />
+                  <animate attributeName="opacity" values="1;0.9;0.1" dur="1.1s" begin="0.35s" repeatCount="indefinite" />
                 </circle>
-                <circle cx="500" cy="350" r="4" fill="#38bdf8">
-                  <animate attributeName="cy" from="90" to="430" dur="1.2s" begin="0.8s" repeatCount="indefinite" />
-                  <animate attributeName="opacity" values="1;0.8;0.2" dur="1.2s" begin="0.8s" repeatCount="indefinite" />
+                <circle cx="600" cy="480" r="4.5" fill="#38bdf8">
+                  <animate attributeName="cy" from="268" to="545" dur="1.1s" begin="0.7s" repeatCount="indefinite" />
+                  <animate attributeName="opacity" values="1;0.9;0.1" dur="1.1s" begin="0.7s" repeatCount="indefinite" />
                 </circle>
               </g>
             )}
 
-            {/* Slew Arc Line from Center to Sat 2 when selected */}
+            {/* Slew Arc Line from Dish to Sat 2 when selected */}
             {activeSatelliteId === 'sat-2' && (
               <line
-                x1="500"
-                y1="440"
-                x2="850"
-                y2="310"
+                x1="600"
+                y1="550"
+                x2="1010"
+                y2="420"
                 stroke="#0284c7"
                 strokeWidth="2.5"
                 strokeDasharray="6 4"
               />
             )}
 
-            {/* Slew Arc Line from Center to Sat 3 when selected */}
+            {/* Slew Arc Line from Dish to Sat 3 when selected */}
             {activeSatelliteId === 'sat-3' && (
               <line
-                x1="500"
-                y1="440"
-                x2="150"
-                y2="330"
-                stroke="#0284c7"
+                x1="600"
+                y1="550"
+                x2="190"
+                y2="420"
+                stroke="#ef4444"
                 strokeWidth="2.5"
                 strokeDasharray="6 4"
               />
             )}
 
             {/* ======================================================== */}
-            {/* SVG LEADER CONNECTOR LINES (Satellite -> Dialogue Box)    */}
+            {/* SVG LEADER LINES CONNECTING CARDS TO SATELLITE ICONS     */}
             {/* ======================================================== */}
-            {/* Sat 3 Leader Line (Left, from 150,330 to callout at 180,260) */}
-            <g stroke="#ef4444" strokeWidth="1.5" opacity="0.75">
-              <line x1="150" y1="310" x2="185" y2="250" />
-              <line x1="185" y1="250" x2="215" y2="250" />
-              <circle cx="150" cy="310" r="3" fill="#ef4444" />
+            {/* Sat 1 Leader Line: From bottom of Center-Top Card (600, 238) down to Sat 1 (600, 260) */}
+            <g stroke="#0284c7" strokeWidth="2" opacity="0.9">
+              <line x1="600" y1="236" x2="600" y2="252" />
+              <polygon points="600,256 596,248 604,248" fill="#0284c7" />
             </g>
 
-            {/* Sat 1 Leader Line (Zenith, from 500,75 to callout at 550,60) */}
-            <g stroke="#0284c7" strokeWidth="1.5" opacity="0.75">
-              <line x1="520" y1="75" x2="560" y2="60" />
-              <line x1="560" y1="60" x2="585" y2="60" />
-              <circle cx="520" cy="75" r="3" fill="#0284c7" />
+            {/* Sat 3 Leader Line: From bottom of Left Card (190, 340) down to Sat 3 (190, 410) */}
+            <g stroke="#ef4444" strokeWidth="2" opacity="0.85">
+              <line x1="190" y1="340" x2="190" y2="408" strokeDasharray="3 3" />
+              <polygon points="190,412 186,402 194,402" fill="#ef4444" />
             </g>
 
-            {/* Sat 2 Leader Line (Right, from 850,300 to callout at 790,240) */}
-            <g stroke="#0284c7" strokeWidth="1.5" opacity="0.75">
-              <line x1="850" y1="285" x2="805" y2="235" />
-              <line x1="805" y1="235" x2="775" y2="235" />
-              <circle cx="850" cy="285" r="3" fill="#0284c7" />
+            {/* Sat 2 Leader Line: From bottom of Right Card (1010, 340) down to Sat 2 (1010, 410) */}
+            <g stroke="#0284c7" strokeWidth="2" opacity="0.85">
+              <line x1="1010" y1="340" x2="1010" y2="408" strokeDasharray="3 3" />
+              <polygon points="1010,412 1006,402 1014,402" fill="#0284c7" />
             </g>
 
             {/* ======================================================== */}
-            {/* THE PARABOLIC GROUND ANTENNA DISH (Center Bottom at 500,460) */}
+            {/* THE SVALBARD PARABOLIC GROUND ANTENNA DISH (Center Base) */}
             {/* ======================================================== */}
-            <g transform="translate(500, 460)">
+            <g transform="translate(600, 560)">
               {/* Pedestal Concrete Base */}
-              <rect x="-35" y="0" width="70" height="15" fill="#475569" rx="3" />
-              <rect x="-25" y="-12" width="50" height="14" fill="#64748b" rx="2" />
+              <rect x="-40" y="0" width="80" height="16" fill="#334155" rx="3" />
+              <rect x="-28" y="-14" width="56" height="16" fill="#475569" rx="2" />
 
               {/* Azimuth Turntable Ring */}
-              <ellipse cx="0" cy="-12" rx="28" ry="6" fill="#334155" stroke="#94a3b8" strokeWidth="1.5" />
+              <ellipse cx="0" cy="-14" rx="32" ry="7" fill="#1e293b" stroke="#94a3b8" strokeWidth="1.5" />
 
               {/* Tilting Dish Assembly */}
-              <g transform={`rotate(${dishRotation}, 0, -20)`} className="transition-transform duration-700 ease-out">
+              <g transform={`rotate(${dishRotation}, 0, -22)`} className="transition-transform duration-700 ease-out">
                 {/* Elevation Yoke Support Arms */}
-                <path d="M -16 -12 L -10 -26 L 10 -26 L 16 -12 Z" fill="#64748b" />
+                <path d="M -18 -14 L -12 -28 L 12 -28 L 18 -14 Z" fill="#64748b" />
 
                 {/* Parabolic Dish Back Structure */}
-                <ellipse cx="0" cy="-35" rx="42" ry="14" fill="#0f172a" />
-                <ellipse cx="0" cy="-36" rx="40" ry="12" fill="#e2e8f0" stroke="#0284c7" strokeWidth="2.5" />
-                <ellipse cx="0" cy="-36" rx="32" ry="8" fill="#f8fafc" stroke="#cbd5e1" strokeWidth="1" />
+                <ellipse cx="0" cy="-38" rx="46" ry="16" fill="#0f172a" />
+                <ellipse cx="0" cy="-39" rx="44" ry="14" fill="#e2e8f0" stroke="#0284c7" strokeWidth="2.5" />
+                <ellipse cx="0" cy="-39" rx="36" ry="9" fill="#f8fafc" stroke="#cbd5e1" strokeWidth="1" />
 
                 {/* Feed Horn Struts */}
-                <line x1="-32" y1="-36" x2="0" y2="-58" stroke="#475569" strokeWidth="2" />
-                <line x1="32" y1="-36" x2="0" y2="-58" stroke="#475569" strokeWidth="2" />
-                <line x1="0" y1="-44" x2="0" y2="-58" stroke="#475569" strokeWidth="2" />
+                <line x1="-34" y1="-39" x2="0" y2="-62" stroke="#475569" strokeWidth="2" />
+                <line x1="34" y1="-39" x2="0" y2="-62" stroke="#475569" strokeWidth="2" />
+                <line x1="0" y1="-48" x2="0" y2="-62" stroke="#475569" strokeWidth="2" />
 
                 {/* Sub-Reflector Feed Horn */}
-                <circle cx="0" cy="-58" r="5" fill="#0284c7" stroke="#ffffff" strokeWidth="1.5" />
+                <circle cx="0" cy="-62" r="5.5" fill="#0284c7" stroke="#ffffff" strokeWidth="2" />
               </g>
 
-              {/* Antenna Label */}
-              <text x="0" y="30" textAnchor="middle" fill="#1e293b" fontSize="12" fontWeight="bold">
-                7.3m S/X-Band Parabolic Dish (SVA-1)
+              {/* Antenna Registry Label */}
+              <text x="0" y="32" textAnchor="middle" fill="#0f172a" fontSize="12" fontWeight="bold">
+                7.3m S/X-Band Parabolic Tracking Dish (SVA-1)
               </text>
             </g>
 
-            {/* SATELLITE 1 ICON (Zenith Peak - Top Center at 500, 75) */}
+            {/* ======================================================== */}
+            {/* SATELLITE 1 ICON (Zenith Peak - 600, 260)                */}
+            {/* ======================================================== */}
             <g
-              transform="translate(500, 75)"
-              className="cursor-pointer transition-transform hover:scale-110"
+              transform="translate(600, 260)"
+              className="cursor-pointer pointer-events-auto"
               onClick={() => onSelectSatellite?.('sat-1')}
             >
               {activeSatelliteId === 'sat-1' && (
-                <circle cx="0" cy="0" r="24" fill="none" stroke="#0284c7" strokeWidth="2" opacity="0.6">
-                  <animate attributeName="r" values="18;32;18" dur="2s" repeatCount="indefinite" />
+                <circle cx="0" cy="0" r="28" fill="none" stroke="#0284c7" strokeWidth="2" opacity="0.6">
+                  <animate attributeName="r" values="22;36;22" dur="2s" repeatCount="indefinite" />
                   <animate attributeName="opacity" values="0.8;0.1;0.8" dur="2s" repeatCount="indefinite" />
                 </circle>
               )}
               {/* Solar Panels */}
-              <rect x="-30" y="-8" width="16" height="16" fill="#1e293b" stroke="#0284c7" strokeWidth="1.5" rx="1" />
-              <line x1="-22" y1="-8" x2="-22" y2="8" stroke="#38bdf8" strokeWidth="1" />
-              <rect x="14" y="-8" width="16" height="16" fill="#1e293b" stroke="#0284c7" strokeWidth="1.5" rx="1" />
-              <line x1="22" y1="-8" x2="22" y2="8" stroke="#38bdf8" strokeWidth="1" />
+              <rect x="-32" y="-9" width="18" height="18" fill="#1e293b" stroke="#0284c7" strokeWidth="1.5" rx="1.5" />
+              <line x1="-23" y1="-9" x2="-23" y2="9" stroke="#38bdf8" strokeWidth="1" />
+              <rect x="14" y="-9" width="18" height="18" fill="#1e293b" stroke="#0284c7" strokeWidth="1.5" rx="1.5" />
+              <line x1="23" y1="-9" x2="23" y2="9" stroke="#38bdf8" strokeWidth="1" />
               {/* Central Satellite Body */}
-              <rect x="-10" y="-12" width="20" height="24" fill="#f8fafc" stroke="#0f172a" strokeWidth="2" rx="2" />
-              <circle cx="0" cy="2" r="5" fill="#0284c7" stroke="#38bdf8" strokeWidth="1" />
-              <line x1="0" y1="12" x2="0" y2="18" stroke="#64748b" strokeWidth="1.5" />
+              <rect x="-11" y="-13" width="22" height="26" fill="#f8fafc" stroke="#0f172a" strokeWidth="2" rx="2" />
+              <circle cx="0" cy="2" r="5.5" fill="#0284c7" stroke="#38bdf8" strokeWidth="1" />
+              <line x1="0" y1="13" x2="0" y2="20" stroke="#64748b" strokeWidth="2" />
             </g>
 
-            {/* SATELLITE 2 ICON (Descending Near LOS - Right Horizon at 850, 300) */}
+            {/* ======================================================== */}
+            {/* SATELLITE 2 ICON (Descending Near LOS - Right: 1010, 420)*/}
+            {/* ======================================================== */}
             <g
-              transform="translate(850, 300)"
-              className="cursor-pointer transition-transform hover:scale-110"
+              transform="translate(1010, 420)"
+              className="cursor-pointer pointer-events-auto"
               onClick={() => onSelectSatellite?.('sat-2')}
             >
-              <line x1="0" y1="-15" x2="18" y2="18" stroke="#0284c7" strokeWidth="2" strokeDasharray="3 3" />
-              <rect x="-26" y="-7" width="14" height="14" fill="#1e293b" stroke="#0284c7" strokeWidth="1.5" rx="1" />
-              <rect x="12" y="-7" width="14" height="14" fill="#1e293b" stroke="#0284c7" strokeWidth="1.5" rx="1" />
-              <rect x="-9" y="-10" width="18" height="20" fill="#f0f9ff" stroke="#0284c7" strokeWidth="2" rx="2" />
-              <circle cx="0" cy="1" r="4" fill="#0284c7" />
+              <line x1="0" y1="-16" x2="20" y2="20" stroke="#0284c7" strokeWidth="2" strokeDasharray="3 3" />
+              <rect x="-28" y="-8" width="16" height="16" fill="#1e293b" stroke="#0284c7" strokeWidth="1.5" rx="1.5" />
+              <rect x="12" y="-8" width="16" height="16" fill="#1e293b" stroke="#0284c7" strokeWidth="1.5" rx="1.5" />
+              <rect x="-10" y="-11" width="20" height="22" fill="#f0f9ff" stroke="#0284c7" strokeWidth="2" rx="2" />
+              <circle cx="0" cy="1" r="4.5" fill="#0284c7" />
             </g>
 
-            {/* SATELLITE 3 ICON (Ascending Near AOS - Left Horizon at 150, 320) */}
+            {/* ======================================================== */}
+            {/* SATELLITE 3 ICON (Ascending Near AOS - Left: 190, 420)   */}
+            {/* ======================================================== */}
             <g
-              transform="translate(150, 320)"
-              className="cursor-pointer transition-transform hover:scale-110"
+              transform="translate(190, 420)"
+              className="cursor-pointer pointer-events-auto"
               onClick={() => onSelectSatellite?.('sat-3')}
             >
-              <line x1="-15" y1="18" x2="8" y2="-12" stroke="#ef4444" strokeWidth="2" strokeDasharray="3 3" />
-              <rect x="-26" y="-7" width="14" height="14" fill="#1e293b" stroke="#ef4444" strokeWidth="1.5" rx="1" />
-              <rect x="12" y="-7" width="14" height="14" fill="#1e293b" stroke="#ef4444" strokeWidth="1.5" rx="1" />
-              <rect x="-9" y="-10" width="18" height="20" fill="#fef2f2" stroke="#dc2626" strokeWidth="2" rx="2" />
-              <circle cx="0" cy="1" r="4" fill="#ef4444" />
+              <line x1="-16" y1="20" x2="10" y2="-14" stroke="#ef4444" strokeWidth="2" strokeDasharray="3 3" />
+              <rect x="-28" y="-8" width="16" height="16" fill="#1e293b" stroke="#ef4444" strokeWidth="1.5" rx="1.5" />
+              <rect x="12" y="-8" width="16" height="16" fill="#1e293b" stroke="#ef4444" strokeWidth="1.5" rx="1.5" />
+              <rect x="-10" y="-11" width="20" height="22" fill="#fef2f2" stroke="#dc2626" strokeWidth="2" rx="2" />
+              <circle cx="0" cy="1" r="4.5" fill="#ef4444" />
             </g>
           </svg>
 
-          {/* ======================================================== */}
-          {/* 3 CONCISE CONNECTED DIALOGUE BOXES BESIDE EACH SATELLITE */}
-          {/* ======================================================== */}
+          {/* ========================================================================= */}
+          {/* 3 FULL-FIDELITY CONNECTED DIALOGUE CARDS (Separate Non-Overlapping Zones)  */}
+          {/* ========================================================================= */}
           
-          {/* 1. DIALOGUE BOX FOR SATELLITE 3 (Left · Rising AOS) */}
+          {/* 1. SATELLITE 3 DIALOGUE CARD (Dedicated Left Quadrant) */}
           <div 
-            onClick={() => onSelectSatellite?.('sat-3')}
-            className={`absolute top-[28%] sm:top-[30%] left-[16%] sm:left-[21%] w-60 sm:w-68 bg-white/95 backdrop-blur-md rounded-xl p-3 border shadow-md transition-all cursor-pointer ${
-              activeSatelliteId === 'sat-3' 
-                ? 'border-red-400 ring-2 ring-red-200 shadow-red-100 scale-105' 
-                : 'border-red-200 hover:border-red-300'
-            }`}
+            className={`absolute top-4 sm:top-8 left-2 sm:left-4 lg:left-6 z-20 transition-all ${
+              activeSatelliteId === 'sat-3' ? 'opacity-100 scale-[1.02]' : 'opacity-95 hover:opacity-100'
+            } ${activeSatelliteId !== 'sat-3' ? 'hidden lg:block' : 'block'}`}
           >
-            {/* Header: Name + Priority */}
-            <div className="flex items-center justify-between pb-1.5 border-b border-red-100">
-              <div className="font-bold text-xs text-slate-900 truncate">
-                3. SkySat-C14
-              </div>
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-800 border border-red-200 flex items-center gap-1">
-                <Flame className="w-2.5 h-2.5 text-red-600" />
-                P1 (Highest)
-              </span>
-            </div>
-
-            {/* Mission & Clock */}
-            <div className="mt-1.5 space-y-1 text-[11px]">
-              <div className="text-red-950 font-semibold truncate">
-                Active Wildfire Front
-              </div>
-              <div className="flex items-center justify-between text-[10px] text-slate-600 font-mono">
-                <span>12° AOS (Rising)</span>
-                <span className="text-emerald-700 font-bold">11m 00s remaining</span>
-              </div>
-            </div>
-
-            {/* Storage Line */}
-            <div className="mt-2 pt-1.5 border-t border-slate-100">
-              <div className="flex items-center justify-between text-[10px] mb-1 text-slate-600 font-mono">
-                <span>Memory:</span>
-                <strong className="text-slate-800">420/512 GB (82%)</strong>
-              </div>
-              <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden flex border border-slate-200">
-                <div className="h-full bg-amber-500 rounded-full" style={{ width: '82%' }} />
-              </div>
-            </div>
-
-            {/* Payload Note */}
-            <div className="mt-1.5 text-[10px] text-slate-500 truncate">
-              Payload: <strong className="text-slate-700">58.0 GB</strong> · High-Res Stereo
-            </div>
+            <SatelliteInfoCard
+              satellite={sat3}
+              isConnected={activeSatelliteId === 'sat-3'}
+              transferredGb={activeSatelliteId === 'sat-3' ? transferredGb : undefined}
+              positionLabel="12° AOS (Rising North)"
+              isHighlighted={activeSatelliteId === 'sat-3'}
+              arrowPosition="bottom-center"
+              onClick={() => onSelectSatellite?.('sat-3')}
+            />
           </div>
 
-          {/* 2. DIALOGUE BOX FOR SATELLITE 1 (Center · Zenith Overhead) */}
+          {/* 2. SATELLITE 1 DIALOGUE CARD (Dedicated Center-Top: Cleanly Above Zenith) */}
           <div 
-            onClick={() => onSelectSatellite?.('sat-1')}
-            className={`absolute top-[4%] sm:top-[6%] left-[53%] sm:left-[57%] w-60 sm:w-68 bg-white/95 backdrop-blur-md rounded-xl p-3 border shadow-md transition-all cursor-pointer ${
-              activeSatelliteId === 'sat-1' 
-                ? 'border-sky-400 ring-2 ring-sky-200 shadow-sky-100 scale-105' 
-                : 'border-slate-200 hover:border-slate-300'
-            }`}
+            className={`absolute top-1 sm:top-2 left-1/2 -translate-x-1/2 z-20 transition-all ${
+              activeSatelliteId === 'sat-1' ? 'opacity-100 scale-[1.02]' : 'opacity-95 hover:opacity-100'
+            } ${activeSatelliteId !== 'sat-1' ? 'hidden lg:block' : 'block'}`}
           >
-            {/* Header: Name + Priority */}
-            <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
-              <div className="font-bold text-xs text-slate-900 truncate">
-                1. SuperDove-21
-              </div>
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200 flex items-center gap-1">
-                <Leaf className="w-2.5 h-2.5 text-slate-500" />
-                P3 (Routine)
-              </span>
-            </div>
-
-            {/* Mission & Clock */}
-            <div className="mt-1.5 space-y-1 text-[11px]">
-              <div className="text-slate-800 font-semibold truncate flex items-center justify-between">
-                <span>Daily Surface Survey</span>
-                <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-0.5">
-                  <Radio className="w-2.5 h-2.5 animate-pulse" />
-                  DOWNLINKING
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-[10px] text-slate-600 font-mono">
-                <span>78.5° Zenith Peak</span>
-                <span className="text-sky-700 font-bold">1,420 Mbps Rate</span>
-              </div>
-            </div>
-
-            {/* Storage Line */}
-            <div className="mt-2 pt-1.5 border-t border-slate-100">
-              <div className="flex items-center justify-between text-[10px] mb-1 text-slate-600 font-mono">
-                <span>Memory (Critical!):</span>
-                <strong className="text-red-700">238/256 GB (93%)</strong>
-              </div>
-              <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden flex border border-slate-200">
-                <div className="h-full bg-red-500 rounded-full" style={{ width: '93%' }} />
-              </div>
-            </div>
-
-            {/* Downlink Progress */}
-            <div className="mt-1.5 text-[10px] text-emerald-700 font-mono font-medium flex items-center justify-between">
-              <span>Sent: <strong>{transferredGb.toFixed(1)} / 38.4 GB</strong></span>
-              <span>Rem: <strong>{(38.4 - transferredGb).toFixed(1)} GB</strong></span>
-            </div>
+            <SatelliteInfoCard
+              satellite={sat1}
+              isConnected={activeSatelliteId === 'sat-1'}
+              transferredGb={activeSatelliteId === 'sat-1' ? transferredGb : undefined}
+              positionLabel="78.5° Zenith (Overhead Peak)"
+              isHighlighted={activeSatelliteId === 'sat-1'}
+              arrowPosition="bottom-center"
+              onClick={() => onSelectSatellite?.('sat-1')}
+            />
           </div>
 
-          {/* 3. DIALOGUE BOX FOR SATELLITE 2 (Right · Setting LOS) */}
+          {/* 3. SATELLITE 2 DIALOGUE CARD (Dedicated Right Quadrant) */}
           <div 
-            onClick={() => onSelectSatellite?.('sat-2')}
-            className={`absolute top-[26%] sm:top-[28%] right-[22%] sm:right-[26%] w-60 sm:w-68 bg-white/95 backdrop-blur-md rounded-xl p-3 border shadow-md transition-all cursor-pointer ${
-              activeSatelliteId === 'sat-2' 
-                ? 'border-sky-400 ring-2 ring-sky-200 shadow-sky-100 scale-105' 
-                : 'border-sky-200 hover:border-sky-300'
-            }`}
+            className={`absolute top-4 sm:top-8 right-2 sm:right-4 lg:right-6 z-20 transition-all ${
+              activeSatelliteId === 'sat-2' ? 'opacity-100 scale-[1.02]' : 'opacity-95 hover:opacity-100'
+            } ${activeSatelliteId !== 'sat-2' ? 'hidden lg:block' : 'block'}`}
           >
-            {/* Header: Name + Priority */}
-            <div className="flex items-center justify-between pb-1.5 border-b border-sky-100">
-              <div className="font-bold text-xs text-slate-900 truncate">
-                2. Pelican-01
-              </div>
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-sky-100 text-sky-800 border border-sky-200 flex items-center gap-1">
-                <Eye className="w-2.5 h-2.5 text-sky-600" />
-                P2 (Expiring!)
-              </span>
-            </div>
-
-            {/* Mission & Clock */}
-            <div className="mt-1.5 space-y-1 text-[11px]">
-              <div className="text-slate-800 font-semibold truncate">
-                Tactical Port Security
-              </div>
-              <div className="flex items-center justify-between text-[10px] text-slate-600 font-mono">
-                <span>22.4° LOS (Setting)</span>
-                <span className="text-amber-700 font-bold flex items-center gap-0.5">
-                  <AlertTriangle className="w-2.5 h-2.5" />
-                  3m 30s left!
-                </span>
-              </div>
-            </div>
-
-            {/* Storage Line */}
-            <div className="mt-2 pt-1.5 border-t border-slate-100">
-              <div className="flex items-center justify-between text-[10px] mb-1 text-slate-600 font-mono">
-                <span>Memory:</span>
-                <strong className="text-slate-800">310/512 GB (60%)</strong>
-              </div>
-              <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden flex border border-slate-200">
-                <div className="h-full bg-emerald-500 rounded-full" style={{ width: '60%' }} />
-              </div>
-            </div>
-
-            {/* Payload Note */}
-            <div className="mt-1.5 text-[10px] text-slate-500 truncate">
-              Payload: <strong className="text-slate-700">42.0 GB</strong> · 30cm HD Video
-            </div>
+            <SatelliteInfoCard
+              satellite={sat2}
+              isConnected={activeSatelliteId === 'sat-2'}
+              transferredGb={activeSatelliteId === 'sat-2' ? transferredGb : undefined}
+              positionLabel="22.4° LOS (Setting South)"
+              isHighlighted={activeSatelliteId === 'sat-2'}
+              arrowPosition="bottom-center"
+              onClick={() => onSelectSatellite?.('sat-2')}
+            />
           </div>
 
         </div>
