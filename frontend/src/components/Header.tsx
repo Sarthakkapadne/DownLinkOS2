@@ -12,7 +12,7 @@ import {
   BarChart3
 } from 'lucide-react';
 
-export type ActivePageType = 'landing' | 'usp1' | 'usp2' | 'comparison';
+export type ActivePageType = 'upload' | 'landing' | 'usp1' | 'usp2' | 'comparison';
 
 interface HeaderProps {
   currentUtcTime?: string;
@@ -24,7 +24,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   currentUtcTime = '01:12:45 UTC',
   activeSatelliteName = 'SuperDove-Flock-4P-21',
-  activePage = 'landing',
+  activePage = 'upload',
   onNavigate
 }) => {
   return (
@@ -79,6 +79,18 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Bottom Strip: Main View Navigation Tabs */}
         <div className="flex items-center gap-2 py-2 overflow-x-auto text-xs font-semibold">
           <button
+            onClick={() => onNavigate?.('upload')}
+            className={`px-3.5 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+              activePage === 'upload'
+                ? 'bg-sky-600 text-white shadow-xs font-bold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+            }`}
+          >
+            <Zap className="w-3.5 h-3.5" />
+            <span>1. Mission JSON Scheduler (Upload & Live Output)</span>
+          </button>
+
+          <button
             onClick={() => onNavigate?.('landing')}
             className={`px-3.5 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-2 whitespace-nowrap ${
               activePage === 'landing'
@@ -87,7 +99,7 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           >
             <Radio className="w-3.5 h-3.5" />
-            <span>1. Algorithm & 180° Sky Horizon (Landing Page)</span>
+            <span>2. Algorithm Architecture & 180° Sky Horizon</span>
           </button>
 
           <button
@@ -99,7 +111,7 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           >
             <Cpu className="w-3.5 h-3.5" />
-            <span>2. USP 1: Per-Station Custom Scheduler</span>
+            <span>3. USP 1: Per-Station Custom Scheduler</span>
           </button>
 
           <button
@@ -110,8 +122,8 @@ export const Header: React.FC<HeaderProps> = ({
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
-            <Zap className="w-3.5 h-3.5" />
-            <span>3. USP 2: Pre-Computed Failure Playbooks</span>
+            <Activity className="w-3.5 h-3.5" />
+            <span>4. USP 2: Pre-Computed Failure Playbooks</span>
           </button>
 
           <button
@@ -123,7 +135,7 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           >
             <BarChart3 className="w-3.5 h-3.5" />
-            <span>4. FCFS vs ORBITOPS (Gantt Benchmark)</span>
+            <span>5. FCFS vs ORBITOPS (Gantt Benchmark)</span>
           </button>
         </div>
 

@@ -4,6 +4,7 @@ import { SkyHorizonView } from './components/SkyHorizonView';
 import { PreConditionsGrid } from './components/PreConditionsGrid';
 import { AlgorithmWalkthrough } from './components/AlgorithmWalkthrough';
 import { ComparativeMissionDashboard } from './components/ComparativeMissionDashboard';
+import { MissionUploadDashboardPage } from './pages/MissionUploadDashboardPage';
 import { UspStationCustomPage } from './pages/UspStationCustomPage';
 import { UspFailurePlaybooksPage } from './pages/UspFailurePlaybooksPage';
 import { FcfsComparisonGanttPage } from './pages/FcfsComparisonGanttPage';
@@ -24,7 +25,7 @@ export const App: React.FC = () => {
   const [satellites] = useState<Satellite[]>(INITIAL_SATELLITES);
   const [groundStation] = useState<GroundStation>(INITIAL_GROUND_STATION);
   const [activeSatelliteId, setActiveSatelliteId] = useState<string>('sat-1');
-  const [activePage, setActivePage] = useState<ActivePageType>('landing');
+  const [activePage, setActivePage] = useState<ActivePageType>('upload');
 
   const activeSat = satellites.find((s) => s.id === activeSatelliteId) || satellites[0];
 
@@ -52,6 +53,14 @@ export const App: React.FC = () => {
 
       {/* Main Container */}
       <main className="flex-1 w-full">
+        {/* Upload & Mission Dashboard Page */}
+        {activePage === 'upload' && (
+          <MissionUploadDashboardPage
+            onNavigateToArchitecture={() => handleNavigate('landing')}
+            onNavigateToBenchmark={() => handleNavigate('comparison')}
+          />
+        )}
+
         {activePage === 'landing' && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
             {/* Intro / Context Banner */}

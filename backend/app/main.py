@@ -38,6 +38,7 @@ from .engine.validator import IndependentValidator
 from .engine.pruner import AstrodynamicPruner
 from .engine.ingest import IngestionAdapter
 from .engine.explainer import DecisionExplainer
+from .engine.scenario_scheduler import ScenarioScheduler
 from .twin.replanner import ReactiveReplanner
 from .services.capex_siting import CapExSitingOptimizer
 from .services.telegram_bot import TelegramMissionBot
@@ -262,6 +263,30 @@ def prune_candidate_passes(req: OptimizationRequest):
         "admissible_passes": admissible,
         "pruned_records": pruned
     }
+
+# ---------------------------------------------------------------------------
+# 3B. SCENARIO JSON UPLOAD & RULE-BASED SCHEDULER
+# ---------------------------------------------------------------------------
+
+@app.post("/api/v1/schedule/upload-scenario")
+def upload_scenario_json(scenario_data: Dict[str, Any]):
+    """
+    Ingests scenario JSON (containing ground_stations, satellites, and orbit metadata),
+    runs the rule-based ORBITOPS scheduling engine, and returns a deconflicted schedule with FCFS comparison.
+    """
+    result = ScenarioScheduler.schedule_scenario(scenario_data)
+    return result
+
+@app.post("/api/v1/schedule/upload-scenario-file")
+async def upload_scenario_file(file: UploadFile = File(...)):
+    """
+    Ingests scenario JSON file, parses payload, and computes rule-based schedule.
+    """
+    import json
+    content = await file.read()
+    scenario_data = json.loads(content.decode("utf-8"))
+    result = ScenarioScheduler.schedule_scenario(scenario_data)
+    return result
 
 # ---------------------------------------------------------------------------
 # 4. SCHEDULER ENGINES (STAGE 3: ORBITOPS CP-SAT, GREEDY, FCFS)
