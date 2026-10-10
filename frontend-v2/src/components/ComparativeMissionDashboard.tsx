@@ -28,12 +28,16 @@ import {
   Cpu
 } from 'lucide-react';
 
-export const ComparativeMissionDashboard: React.FC = () => {
+interface ComparativeMissionDashboardProps {
+  onNavigate?: (page: 'landing' | 'usp1' | 'usp2') => void;
+}
+
+export const ComparativeMissionDashboard: React.FC<ComparativeMissionDashboardProps> = ({
+  onNavigate
+}) => {
   const [selectedMode, setSelectedMode] = useState<'ORBITOPS' | 'FCFS' | 'SIDE_BY_SIDE'>('ORBITOPS');
-  const [activeUspId, setActiveUspId] = useState<string>('usp-station-custom');
   const [hoveredBlock, setHoveredBlock] = useState<TimelineGanttBlock | null>(null);
 
-  const activeUsp = POWER_FACTOR_USPS.find((u) => u.id === activeUspId) || POWER_FACTOR_USPS[0];
   const metrics = EFFICIENCY_METRICS_DATA;
 
   // Max timeline span from minute 8 to 20 (12 minutes total)
@@ -476,114 +480,47 @@ export const ComparativeMissionDashboard: React.FC = () => {
       </div>
 
       {/* ======================================================== */}
-      {/* 5. THE CORE POWER FACTOR USPs SHOWCASE                   */}
+      {/* 5. DEDICATED USP DEEP-DIVE EXPLORER BANNER               */}
       {/* ======================================================== */}
-      <div className="space-y-4 pt-4 border-t border-slate-200">
-        <div>
-          <div className="flex items-center gap-2">
-            <Cpu className="w-4 h-4 text-indigo-600" />
-            <h3 className="font-extrabold text-base sm:text-lg text-slate-900">
-              The Core Power Factor USPs (Aerospace & Network Innovations)
-            </h3>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            The mathematical, physical, and architectural differentiators that make ORBITOPS fundamentally superior to naive schedulers.
-          </p>
-        </div>
-
-        {/* USP Interactive Grid (2 Rows x 3 Columns) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {POWER_FACTOR_USPS.map((usp) => {
-            const isSelected = activeUspId === usp.id;
-            return (
-              <div
-                key={usp.id}
-                onClick={() => setActiveUspId(usp.id)}
-                className={`p-5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
-                  isSelected
-                    ? 'bg-gradient-to-b from-indigo-50/80 to-white border-indigo-400 ring-2 ring-indigo-200 shadow-sm'
-                    : 'bg-slate-50/80 border-slate-200 hover:bg-white hover:border-slate-300'
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <span className="text-[10px] font-bold font-mono px-2 py-0.5 rounded bg-white text-indigo-700 border border-indigo-200">
-                      {usp.badge.split('·')[0]}
-                    </span>
-                    <span className="text-[10px] font-mono text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                      {usp.metricGain}
-                    </span>
-                  </div>
-
-                  <h4 className="font-bold text-sm text-slate-900 leading-tight">
-                    {usp.title}
-                  </h4>
-
-                  <p className="text-[11px] font-mono text-slate-600 mt-1 italic">
-                    {usp.subtitle}
-                  </p>
-
-                  <div className="mt-3 p-2 bg-slate-900 text-sky-300 rounded-lg text-[10px] font-mono">
-                    <code>{usp.formula}</code>
-                  </div>
-                </div>
-
-                <div className="mt-3 pt-2 border-t border-slate-200 flex items-center justify-between text-[11px]">
-                  <span className="text-indigo-600 font-bold">Inspect Deep-Dive</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-indigo-600" />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Selected USP Deep-Dive Drawer */}
-        {activeUsp && (
-          <div className="p-5 rounded-2xl bg-slate-900 text-white border border-slate-800 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-indigo-500/20 border border-indigo-400/40 flex items-center justify-center">
-                  <Sparkles className="w-4 h-4 text-indigo-400" />
-                </div>
-                <div>
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-indigo-400 font-bold">
-                    {activeUsp.badge}
-                  </span>
-                  <h4 className="font-bold text-base text-white">
-                    {activeUsp.title}: {activeUsp.subtitle}
-                  </h4>
-                </div>
-              </div>
-
-              <div className="px-3 py-1 bg-emerald-500/20 border border-emerald-500/40 rounded-lg text-emerald-300 font-mono text-xs font-bold">
-                {activeUsp.metricGain}
-              </div>
+      <div className="pt-4 border-t border-slate-200">
+        <div className="p-6 rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 text-white flex flex-col md:flex-row items-center justify-between gap-5 border border-slate-800 shadow-md">
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono text-sky-400 font-bold bg-sky-500/20 border border-sky-400/30">
+              <Sparkles className="w-3 h-3" />
+              <span>CORE SYSTEM USPs · DEDICATED PAGES</span>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-              <div className="p-3.5 bg-slate-800/80 rounded-xl border border-slate-700 space-y-1.5">
-                <span className="text-indigo-300 font-mono text-[10px] uppercase font-bold block">
-                  How ORBITOPS Executes It:
-                </span>
-                <p className="text-slate-200 leading-relaxed">
-                  {activeUsp.explanation}
-                </p>
-              </div>
-
-              <div className="p-3.5 bg-red-950/30 rounded-xl border border-red-500/30 space-y-1.5">
-                <span className="text-red-400 font-mono text-[10px] uppercase font-bold block flex items-center gap-1">
-                  <AlertTriangle className="w-3.5 h-3.5" />
-                  Why Traditional FCFS Fails Here:
-                </span>
-                <p className="text-red-200 leading-relaxed">
-                  {activeUsp.fcfsComparison}
-                </p>
-              </div>
-            </div>
+            <h4 className="text-base sm:text-lg font-bold text-white tracking-tight">
+              Explore the 2 Fundamental System USPs on Dedicated Interactive Pages
+            </h4>
+            <p className="text-xs text-slate-300 leading-relaxed max-w-2xl">
+              Inspect how ORBITOPS tailors schedules station-by-station (dish size, weather loss, slew rate) and activates pre-computed failure playbooks in under 100 milliseconds without schedule thrashing.
+            </p>
           </div>
-        )}
+
+          <div className="flex flex-wrap items-center gap-3 flex-shrink-0">
+            {onNavigate && (
+              <>
+                <button
+                  onClick={() => onNavigate('usp1')}
+                  className="px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition shadow-sm flex items-center gap-2 cursor-pointer"
+                >
+                  <Cpu className="w-4 h-4" />
+                  <span>Open USP 1 (Station-Aware)</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => onNavigate('usp2')}
+                  className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition shadow-sm flex items-center gap-2 cursor-pointer"
+                >
+                  <Zap className="w-4 h-4" />
+                  <span>Open USP 2 (Failure Playbooks)</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </>
+            )}
+          </div>
+        </div>
       </div>
-
     </div>
   );
 };
