@@ -12,7 +12,7 @@ import {
   BarChart3
 } from 'lucide-react';
 
-export type ActivePageType = 'landing' | 'usp1' | 'usp2';
+export type ActivePageType = 'landing' | 'usp1' | 'usp2' | 'comparison';
 
 interface HeaderProps {
   currentUtcTime?: string;
@@ -112,6 +112,18 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Zap className="w-3.5 h-3.5" />
             <span>3. USP 2: Pre-Computed Failure Playbooks</span>
+          </button>
+
+          <button
+            onClick={() => onNavigate?.('comparison')}
+            className={`px-3.5 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+              activePage === 'comparison'
+                ? 'bg-sky-600 text-white shadow-xs font-bold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+            }`}
+          >
+            <BarChart3 className="w-3.5 h-3.5" />
+            <span>4. FCFS vs ORBITOPS (Gantt Benchmark)</span>
           </button>
         </div>
 

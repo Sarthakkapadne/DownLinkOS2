@@ -1,57 +1,29 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { 
-  POWER_FACTOR_USPS, 
-  ORBITOPS_TIMELINE_BLOCKS, 
-  FCFS_TIMELINE_BLOCKS, 
   ACM_ELEVATION_POINTS,
   EFFICIENCY_METRICS_DATA 
 } from '../data/scenarioData';
-import { PowerUsp, TimelineGanttBlock } from '../types';
 import { 
   BarChart3, 
-  TrendingUp, 
-  ShieldCheck, 
-  Zap, 
-  Clock, 
   HardDrive, 
   Radio, 
   BookmarkCheck, 
-  AlertTriangle, 
-  CheckCircle2, 
   Sparkles,
-  Layers,
   ArrowRight,
-  Flame,
-  RotateCw,
   Gauge,
-  Sliders,
-  Cpu
+  Cpu,
+  Zap
 } from 'lucide-react';
 
 interface ComparativeMissionDashboardProps {
-  onNavigate?: (page: 'landing' | 'usp1' | 'usp2') => void;
+  onNavigate?: (page: 'landing' | 'usp1' | 'usp2' | 'comparison') => void;
 }
 
 export const ComparativeMissionDashboard: React.FC<ComparativeMissionDashboardProps> = ({
   onNavigate
 }) => {
-  const [selectedMode, setSelectedMode] = useState<'ORBITOPS' | 'FCFS' | 'SIDE_BY_SIDE'>('ORBITOPS');
-  const [hoveredBlock, setHoveredBlock] = useState<TimelineGanttBlock | null>(null);
 
   const metrics = EFFICIENCY_METRICS_DATA;
-
-  // Max timeline span from minute 8 to 20 (12 minutes total)
-  const timelineStartMin = 7.5;
-  const timelineEndMin = 20.5;
-  const totalTimelineMinutes = timelineEndMin - timelineStartMin;
-
-  const getPositionPercent = (min: number) => {
-    return Math.max(0, Math.min(100, ((min - timelineStartMin) / totalTimelineMinutes) * 100));
-  };
-
-  const getWidthPercent = (start: number, end: number) => {
-    return Math.max(2, ((end - start) / totalTimelineMinutes) * 100);
-  };
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden space-y-8 p-6 sm:p-8">
@@ -75,44 +47,17 @@ export const ComparativeMissionDashboard: React.FC<ComparativeMissionDashboardPr
           </p>
         </div>
 
-        {/* Mode Switcher Tabs */}
-        <div className="flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-semibold self-start lg:self-auto">
+        {/* Direct Link to Dedicated Gantt Benchmark Page */}
+        {onNavigate && (
           <button
-            onClick={() => setSelectedMode('ORBITOPS')}
-            className={`px-3 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
-              selectedMode === 'ORBITOPS'
-                ? 'bg-sky-600 text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
+            onClick={() => onNavigate('comparison')}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition shadow-sm cursor-pointer border border-slate-700 self-start lg:self-auto"
           >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>ORBITOPS Autonomous Engine</span>
+            <BarChart3 className="w-4 h-4 text-sky-400" />
+            <span>Open Dedicated Gantt Chart Benchmark</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </button>
-
-          <button
-            onClick={() => setSelectedMode('FCFS')}
-            className={`px-3 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
-              selectedMode === 'FCFS'
-                ? 'bg-red-600 text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <AlertTriangle className="w-3.5 h-3.5" />
-            <span>Legacy FCFS Scheduler</span>
-          </button>
-
-          <button
-            onClick={() => setSelectedMode('SIDE_BY_SIDE')}
-            className={`px-3 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
-              selectedMode === 'SIDE_BY_SIDE'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <Sliders className="w-3.5 h-3.5" />
-            <span>Side-by-Side View</span>
-          </button>
-        </div>
+        )}
       </div>
 
       {/* ======================================================== */}
@@ -216,144 +161,7 @@ export const ComparativeMissionDashboard: React.FC<ComparativeMissionDashboardPr
         </div>
       </div>
 
-      {/* ======================================================== */}
-      {/* 3. CRAZY LEVEL DASHBOARD TIME VISUAL CHARTS (GANTT TRACK) */}
-      {/* ======================================================== */}
-      <div className="p-6 rounded-2xl bg-slate-900 text-white space-y-5 border border-slate-800 shadow-lg">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
-          <div>
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-sky-400" />
-              <h3 className="font-bold text-sm sm:text-base text-white tracking-wide">
-                Mission Execution Timeline Gantt (01:08 UTC – 01:20 UTC)
-              </h3>
-            </div>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Minute-by-minute comparison of antenna RF allocation, state transitions, and conflict handling.
-            </p>
-          </div>
 
-          <div className="flex items-center gap-3 text-[11px] font-mono">
-            <span className="flex items-center gap-1 text-sky-300">
-              <span className="w-2.5 h-2.5 rounded-sm bg-sky-500" /> Active Downlink
-            </span>
-            <span className="flex items-center gap-1 text-amber-300">
-              <span className="w-2.5 h-2.5 rounded-sm bg-amber-500" /> Slew Motor
-            </span>
-            <span className="flex items-center gap-1 text-teal-300">
-              <span className="w-2.5 h-2.5 rounded-sm bg-teal-500" /> Checkpoint
-            </span>
-            <span className="flex items-center gap-1 text-rose-300">
-              <span className="w-2.5 h-2.5 rounded-sm bg-rose-600" /> Failure / Shutoff
-            </span>
-          </div>
-        </div>
-
-        {/* Time Scale Axis Marker */}
-        <div className="relative h-6 border-b border-slate-800 text-[10px] font-mono text-slate-400">
-          {[8, 10, 12, 14, 16, 18, 20].map((min) => (
-            <div
-              key={min}
-              className="absolute transform -translate-x-1/2 flex flex-col items-center"
-              style={{ left: `${getPositionPercent(min)}%` }}
-            >
-              <span>01:{min < 10 ? `0${min}` : min}:00</span>
-              <div className="w-px h-2 bg-slate-700 mt-0.5" />
-            </div>
-          ))}
-        </div>
-
-        {/* TRACK 1: ORBITOPS AUTONOMOUS TIMELINE */}
-        {(selectedMode === 'ORBITOPS' || selectedMode === 'SIDE_BY_SIDE') && (
-          <div className="space-y-1.5 pt-2">
-            <div className="flex items-center justify-between text-xs font-bold text-sky-300 font-mono">
-              <span className="flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-sky-400" />
-                ORBITOPS Autonomous Execution Schedule
-              </span>
-              <span className="text-[11px] text-emerald-400 font-normal">
-                138.4 GB Delivered · 0 Lost Bytes · 0 Overflows
-              </span>
-            </div>
-
-            <div className="relative h-12 bg-slate-800/80 rounded-xl p-1 border border-slate-700 overflow-hidden flex items-center">
-              {ORBITOPS_TIMELINE_BLOCKS.map((block) => {
-                const left = getPositionPercent(block.startMinute);
-                const width = getWidthPercent(block.startMinute, block.endMinute);
-                return (
-                  <div
-                    key={block.id}
-                    onMouseEnter={() => setHoveredBlock(block)}
-                    onMouseLeave={() => setHoveredBlock(null)}
-                    style={{ left: `${left}%`, width: `${width}%` }}
-                    className={`absolute h-9 rounded-lg border px-2 flex items-center justify-between cursor-pointer transition-all hover:brightness-110 hover:z-20 text-[11px] font-mono shadow-xs overflow-hidden ${block.statusColor}`}
-                    title={`${block.label} (${block.notes})`}
-                  >
-                    <span className="font-bold truncate">{block.satelliteName}</span>
-                    <span className="text-[10px] opacity-90 hidden sm:inline ml-1 font-bold">
-                      {block.dataTransferredGb > 0 ? `+${block.dataTransferredGb}GB` : block.actionType}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* TRACK 2: TRADITIONAL FCFS TIMELINE */}
-        {(selectedMode === 'FCFS' || selectedMode === 'SIDE_BY_SIDE') && (
-          <div className="space-y-1.5 pt-2">
-            <div className="flex items-center justify-between text-xs font-bold text-red-300 font-mono">
-              <span className="flex items-center gap-1.5">
-                <AlertTriangle className="w-3.5 h-3.5 text-red-400" />
-                Legacy FCFS (First-Come First-Served) Schedule
-              </span>
-              <span className="text-[11px] text-red-400 font-normal">
-                Only 44.0 GB Delivered · 22.8 GB Wasted · Pelican Camera Shut Off!
-              </span>
-            </div>
-
-            <div className="relative h-12 bg-slate-800/80 rounded-xl p-1 border border-slate-700 overflow-hidden flex items-center">
-              {FCFS_TIMELINE_BLOCKS.map((block) => {
-                const left = getPositionPercent(block.startMinute);
-                const width = getWidthPercent(block.startMinute, block.endMinute);
-                return (
-                  <div
-                    key={block.id}
-                    onMouseEnter={() => setHoveredBlock(block)}
-                    onMouseLeave={() => setHoveredBlock(null)}
-                    style={{ left: `${left}%`, width: `${width}%` }}
-                    className={`absolute h-9 rounded-lg border px-2 flex items-center justify-between cursor-pointer transition-all hover:brightness-110 hover:z-20 text-[11px] font-mono shadow-xs overflow-hidden ${block.statusColor}`}
-                    title={`${block.label} (${block.notes})`}
-                  >
-                    <span className="font-bold truncate">{block.satelliteName}</span>
-                    <span className="text-[10px] opacity-90 hidden sm:inline ml-1 font-bold">
-                      {block.actionType}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Interactive Event Details Inspector Drawer */}
-        <div className="bg-slate-800/90 rounded-xl p-3 border border-slate-700 text-xs font-mono flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="text-slate-400">Inspecting Event:</span>
-            <strong className="text-sky-300">
-              {hoveredBlock ? hoveredBlock.label : 'Hover over any timeline segment above to inspect telemetry'}
-            </strong>
-          </div>
-          {hoveredBlock && (
-            <div className="flex items-center gap-3 text-[11px] text-slate-300">
-              <span>Bitrate: <strong className="text-emerald-400">{hoveredBlock.bitrateMbps} Mbps</strong></span>
-              <span>Delivered: <strong className="text-white">{hoveredBlock.dataTransferredGb} GB</strong></span>
-              <span className="text-slate-400 italic truncate max-w-xs">{hoveredBlock.notes}</span>
-            </div>
-          )}
-        </div>
-      </div>
 
       {/* ======================================================== */}
       {/* 4. DVB-S2X DYNAMIC ACM ATMOSPHERIC BITRATE CURVE         */}
@@ -513,7 +321,15 @@ export const ComparativeMissionDashboard: React.FC<ComparativeMissionDashboardPr
                   className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition shadow-sm flex items-center gap-2 cursor-pointer"
                 >
                   <Zap className="w-4 h-4" />
-                  <span>Open USP 2 (Failure Playbooks)</span>
+                  <span>Open USP 2 (Playbooks)</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => onNavigate('comparison')}
+                  className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition shadow-sm border border-slate-700 flex items-center gap-2 cursor-pointer"
+                >
+                  <BarChart3 className="w-4 h-4 text-sky-400" />
+                  <span>FCFS vs ORBITOPS Gantt</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </>

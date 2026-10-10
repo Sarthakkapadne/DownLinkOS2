@@ -6,6 +6,7 @@ import { AlgorithmWalkthrough } from './components/AlgorithmWalkthrough';
 import { ComparativeMissionDashboard } from './components/ComparativeMissionDashboard';
 import { UspStationCustomPage } from './pages/UspStationCustomPage';
 import { UspFailurePlaybooksPage } from './pages/UspFailurePlaybooksPage';
+import { FcfsComparisonGanttPage } from './pages/FcfsComparisonGanttPage';
 import { INITIAL_SATELLITES, INITIAL_GROUND_STATION } from './data/scenarioData';
 import { Satellite, GroundStation } from './types';
 import { 
@@ -141,6 +142,15 @@ export const App: React.FC = () => {
           <UspFailurePlaybooksPage
             onBack={() => handleNavigate('landing')}
             onNavigateToUsp1={() => handleNavigate('usp1')}
+          />
+        )}
+
+        {/* FCFS vs ORBITOPS Comparison Benchmark Page */}
+        {activePage === 'comparison' && (
+          <FcfsComparisonGanttPage
+            onBack={() => handleNavigate('landing')}
+            onNavigateToUsp1={() => handleNavigate('usp1')}
+            onNavigateToUsp2={() => handleNavigate('usp2')}
           />
         )}
       </main>
