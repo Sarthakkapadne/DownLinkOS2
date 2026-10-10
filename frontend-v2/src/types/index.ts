@@ -111,7 +111,7 @@ export interface PowerUsp {
   explanation: string;
   fcfsComparison: string;
   metricGain: string;
-  category: 'PHY_LAYER' | 'STORAGE_HEURISTIC' | 'PROTOCOL' | 'KINEMATICS';
+  category: 'PHY_LAYER' | 'STORAGE_HEURISTIC' | 'PROTOCOL' | 'KINEMATICS' | 'STATION_AWARE' | 'RESILIENCE';
 }
 
 export interface TimelineGanttBlock {

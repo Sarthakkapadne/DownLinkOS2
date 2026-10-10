@@ -30,7 +30,7 @@ import {
 
 export const ComparativeMissionDashboard: React.FC = () => {
   const [selectedMode, setSelectedMode] = useState<'ORBITOPS' | 'FCFS' | 'SIDE_BY_SIDE'>('ORBITOPS');
-  const [activeUspId, setActiveUspId] = useState<string>('usp-acm');
+  const [activeUspId, setActiveUspId] = useState<string>('usp-station-custom');
   const [hoveredBlock, setHoveredBlock] = useState<TimelineGanttBlock | null>(null);
 
   const activeUsp = POWER_FACTOR_USPS.find((u) => u.id === activeUspId) || POWER_FACTOR_USPS[0];
@@ -476,23 +476,23 @@ export const ComparativeMissionDashboard: React.FC = () => {
       </div>
 
       {/* ======================================================== */}
-      {/* 5. THE 4 POWER FACTOR USPs SHOWCASE                      */}
+      {/* 5. THE CORE POWER FACTOR USPs SHOWCASE                   */}
       {/* ======================================================== */}
       <div className="space-y-4 pt-4 border-t border-slate-200">
         <div>
           <div className="flex items-center gap-2">
             <Cpu className="w-4 h-4 text-indigo-600" />
             <h3 className="font-extrabold text-base sm:text-lg text-slate-900">
-              The 4 High-Power Factor USPs (Core Aerospace Innovations)
+              The Core Power Factor USPs (Aerospace & Network Innovations)
             </h3>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            The mathematical and physical differentiators that make ORBITOPS fundamentally superior to naive schedulers.
+            The mathematical, physical, and architectural differentiators that make ORBITOPS fundamentally superior to naive schedulers.
           </p>
         </div>
 
-        {/* USP Interactive Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* USP Interactive Grid (2 Rows x 3 Columns) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {POWER_FACTOR_USPS.map((usp) => {
             const isSelected = activeUspId === usp.id;
             return (

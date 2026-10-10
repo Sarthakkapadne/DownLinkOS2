@@ -468,8 +468,34 @@ export const EFFICIENCY_METRICS_DATA: EfficiencyMetrics = {
 
 export const POWER_FACTOR_USPS: PowerUsp[] = [
   {
+    id: 'usp-station-custom',
+    badge: 'USP 1 · NETWORK ARCHITECTURE',
+    title: 'Per-Station Custom Scheduler',
+    subtitle: 'Station-Aware Capabilities vs One-Size-Fits-All Scheduling',
+    formula: 'Capacity_stn = f(Dish_m, Rain_dB, Slew_rate, Backhaul_Gbps)',
+    explanation:
+      'Every ground station operates differently, so one scheduling strategy cannot fit them all. ORBITOPS considers each station’s dish size, weather conditions, antenna movement speed, and data-handling capacity before assigning satellite contacts. This helps the scheduler estimate how much data each station can handle and choose opportunities that match its actual capabilities. The result is station-aware scheduling instead of treating every antenna the same.',
+    fcfsComparison:
+      'FCFS treats every antenna the same, causing severe throughput bottlenecks and slew overruns on slower dishes.',
+    metricGain: '100% Station Capability Match',
+    category: 'STATION_AWARE'
+  },
+  {
+    id: 'usp-failure-playbooks',
+    badge: 'USP 2 · RESILIENCE & RECOVERY',
+    title: 'Pre-Computed Failure Playbooks',
+    subtitle: 'Proactive Disruption Recovery (<100ms Sub-Second Replanning)',
+    formula: 'Plan_contingency = Optimize(G \\ {stn_fail}, Frozen_Lock = 30m)',
+    explanation:
+      'A scheduling plan must be ready for unexpected failures, not just normal operations. ORBITOPS prepares alternative schedules in advance for possible ground station failures. When a station goes offline, the system can select a suitable backup plan and validate it against the remaining constraints. This helps reduce recovery delays and protects critical satellite data wherever alternative contact opportunities are available. The goal is simple: prepare for disruptions before they happen, rather than starting from scratch after a failure.',
+    fcfsComparison:
+      'FCFS crashes upon station failure; requires full manual rescheduling from scratch, losing urgent passes.',
+    metricGain: '<100ms Re-route Latency (Zero Thrash)',
+    category: 'RESILIENCE'
+  },
+  {
     id: 'usp-acm',
-    badge: 'USP 1 · PHY LAYER INNOVATION',
+    badge: 'USP 3 · PHY LAYER INNOVATION',
     title: 'Dynamic Atmospheric ACM Profiling',
     subtitle: 'DVB-S2X Elevation Adaptive ModCod (250 → 1,420 Mbps)',
     formula: 'R_b(θ) = B_w · log₂(1 + SINR(θ)) · η_atm',
@@ -480,7 +506,7 @@ export const POWER_FACTOR_USPS: PowerUsp[] = [
   },
   {
     id: 'usp-cfdp',
-    badge: 'USP 2 · PROTOCOL INNOVATION',
+    badge: 'USP 4 · PROTOCOL INNOVATION',
     title: 'CFDP Class 2 Fractional Resumption',
     subtitle: 'Zero Retransmission Waste via CCSDS 727.0-B-4 Bookmarks',
     formula: 'Offset_resume = EOF_Ack(LastVerifiedPDU) + 1 byte',
@@ -491,7 +517,7 @@ export const POWER_FACTOR_USPS: PowerUsp[] = [
   },
   {
     id: 'usp-buffer',
-    badge: 'USP 3 · STORAGE HEURISTIC',
+    badge: 'USP 5 · STORAGE HEURISTIC',
     title: 'SSR Buffer Depletion Heuristic',
     subtitle: 'Predictive Camera Sensor Protection (Zero Sensor Shutoffs)',
     formula: 'Urgency(t) = P · [d(SSR)/dt] / [Capacity - SSR(t)]',
@@ -502,7 +528,7 @@ export const POWER_FACTOR_USPS: PowerUsp[] = [
   },
   {
     id: 'usp-cable',
-    badge: 'USP 4 · KINEMATICS SAFETY',
+    badge: 'USP 6 · KINEMATICS SAFETY',
     title: 'Cable-Wrap Turntable Accumulator Modeling',
     subtitle: 'Shortest-Arc Slew with Zero Emergency Mechanical Jams',
     formula: '|Σ ΔAzimuth| ≤ 270° · (ω_az = 2.0°/s)',
